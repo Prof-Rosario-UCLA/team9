@@ -1,0 +1,44 @@
+-- Users and authentication
+CREATE TABLE users (
+    user_id SERIAL PRIMARY KEY,
+    email VARCHAR(255) UNIQUE NOT NULL,
+    password_hash TEXT NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Groups
+CREATE TABLE groups (
+    group_id SERIAL PRIMARY KEY,
+    name TEXT NOT NULL
+);
+
+-- User profiles
+CREATE TABLE profiles (
+    profile_id SERIAL PRIMARY KEY,
+    user_id INT REFERENCES users(user_id) ON DELETE CASCADE,
+    group_id INT REFERENCES groups(group_id) ON DELETE SET NULL,
+    user_name TEXT NOT NULL,
+    points INT DEFAULT 0
+    UNIQUE(user_id)
+);
+
+-- Tasks
+CREATE TABLE tasks (
+    task_id SERIAL PRIMARY KEY,
+    group_id INT REFERENCES groups(group_id) ON DELETE CASCADE,
+    description TEXT NOT NULL,
+    due_date DATE,
+    point_worth INT DEFAULT 0,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    claimed_by INT REFERENCES users(profile_id) ON DELETE SET NULL,
+    claimed_at TIMESTAMPTZ,
+    completed_at TIMESTAMPTZ,
+    is_completed BOOLEAN DEFAULT FALSE
+);
+
+-- Favorites/Likes
+CREATE TABLE user_likes (
+    liked_user_id INT REFERENCES users(user_id) ON DELETE CASCADE,
+    liked_by_user_id INT REFERENCES users(user_id) ON DELETE CASCADE,
+    PRIMARY KEY (liked_user_id, liked_by_user_id)
+);
