@@ -3,7 +3,11 @@ const { Pool } = require('pg')
 console.log("Loaded DATABASE_URL:", process.env.DATABASE_URL);
 
 const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
+  user: process.env.DATABASE_USERNAME,
+  host: process.env.DATABASE_URL,
+  database: process.env.DATABASE_DB,
+  password: process.env.DATABASE_PASSWORD,
+  port: process.env.DATABASE_PORT,
   });  
 
 module.exports = pool

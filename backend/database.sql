@@ -3,6 +3,7 @@ CREATE TABLE users (
     user_id SERIAL PRIMARY KEY,
     email VARCHAR(255) UNIQUE NOT NULL,
     password_hash TEXT NOT NULL,
+    user_name TEXT NOT NULL,
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -17,7 +18,6 @@ CREATE TABLE profiles (
     profile_id SERIAL PRIMARY KEY,
     user_id INT REFERENCES users(user_id) ON DELETE CASCADE,
     group_id INT REFERENCES groups(group_id) ON DELETE SET NULL,
-    user_name TEXT NOT NULL,
     points INT DEFAULT 0
     UNIQUE(user_id)
 );
