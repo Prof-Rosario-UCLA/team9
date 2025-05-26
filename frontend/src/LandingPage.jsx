@@ -10,7 +10,7 @@ export default function LandingPage() {
       {/* Background overlay */}
       <div className="absolute inset-0 bg-black bg-opacity-60 -z-10"></div>
 
-      {/*Navbar (no emoji) */}
+      {/*Navbar*/}
       <nav className="w-full max-w-7xl mx-auto px-4 py-4 flex items-center justify-between bg-base-100/20 backdrop-blur-sm rounded-xl mt-6 mb-6">
         <div className="text-white font-bold text-xl">
           <span className="text-info">Git-Blame</span>
@@ -22,12 +22,11 @@ export default function LandingPage() {
 
       {/*Centered main content */}
       <div className="flex-1 flex flex-col items-center justify-center pb-12 w-full">
-        {/* Page heading */}
         <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-info text-center mb-10">
           Welcome to Git-Blame
         </h1>
 
-        {/*Equal-height cards */}
+
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 w-full max-w-6xl">
           <div className="card h-full bg-transparent border border-info rounded-box p-6 text-center shadow-md backdrop-blur-sm flex flex-col justify-center">
             <div>
