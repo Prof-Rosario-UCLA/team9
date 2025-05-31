@@ -25,6 +25,10 @@ app.use(fileUpload({
 }));
 app.use(express.json())
 
+app.listen(port, () => {
+  console.log("server has started on port", port)
+})
+
 // Authenticate the session token created during registration or login
 function authenticateToken(req, res, next) {
 const authHeader = req.headers['authorization']
@@ -42,10 +46,10 @@ module.exports = pool
 
 // Signup endpoint
 app.post('/signup', async (req, res) => {
-const { email, password} = req.body 
+const { userName, email, password} = req.body 
 
-if (!email || !password) {
-  return res.status(400).json({ error: "Email and password are required." })
+if (!email || !password || !userName) {
+  return res.status(400).json({ error: "Email, password, and username are required." })
 }
 
 const client = await pool.connect() 
@@ -66,8 +70,8 @@ try {
   const hashedPassword = await bcrypt.hash(password, 10)
 
   const newUser = await client.query(
-    'INSERT INTO users (email, password) VALUES ($1, $2) RETURNING user_id',
-    [email, hashedPassword]
+    'INSERT INTO users (email, password, user_name) VALUES ($1, $2, $3) RETURNING user_id',
+    [email, hashedPassword, userName]
   )
 
   const user_id = newUser.rows[0].user_id
@@ -120,7 +124,7 @@ try {
   }
 
   const token = jwt.sign(
-    { userId: user.person_id, email: user.email },
+    { userId: user.user_id, email: user.email },
     process.env.JWT_SECRET,
     { expiresIn: '1h' }
   )
