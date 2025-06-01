@@ -146,7 +146,6 @@ try {
   const client = await pool.connect();
     try {
       await client.query("BEGIN");
-      // Suppose your users table has a column `profile_pic bytea`
       const updateText = `
         UPDATE users
         SET pfp = $1
