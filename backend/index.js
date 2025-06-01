@@ -132,27 +132,44 @@ console.log("Successful login")
 })
 
 /* Upload Profile Picture */
-app.post("/uploadPfp", authenticateToken, async (req, res) => {
+app.post("/uploadBio", authenticateToken, async (req, res) => {
 try {
   const userId = req.user.userId;
+  const { user_name, bio, contact_info } = req.body;
 
-  if (!req.files || !req.files.pfp) {
-    return res.status(400).json({ error: "Profile picture is required." });
+  let imgBuffer = null;
+  if (req.files && req.files.pfp) {
+    const imageFile = req.files.pfp;
+    imgBuffer = imageFile.data;
   }
-
-  const imageFile = req.files.pfp;
-  const imgBuffer = imageFile.data;
 
   const client = await pool.connect();
     try {
       await client.query("BEGIN");
-      const updateText = `
-        UPDATE users
-        SET pfp = $1
-        WHERE user_id = $2
-        RETURNING user_id
-      `;
-      await client.query(updateText, [imgBuffer, userId]);
+      let updateText, params;
+      if (imgBuffer) {
+        // With pfp
+        updateText = `
+          UPDATE users
+          SET user_name = $1,
+          bio = $2,
+          contact_info = $3,
+          pfp = $4
+          WHERE user_id = $5
+        `;
+        params = [user_name, bio, contact_info, imgBuffer, userId];
+      } else {
+        // No pfp
+        updateText = `
+          UPDATE users
+          SET user_name = $1,
+          bio = $2,
+          contact_info = $3
+          WHERE user_id = $4
+        `;
+        params = [user_name, bio, contact_info, userId];
+      }
+      await client.query(updateText, params);
       await client.query("COMMIT");
       res.status(200).json({ message: "Profile picture updated successfully!" });
     } catch (dbErr) {
@@ -167,3 +184,45 @@ try {
     res.status(500).send("Server Error");
   }
 });
+
+/* Retrieve Profile Information */
+app.get("/getProfile", authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.userId;
+
+    const { rows } = await pool.query(
+      `
+      SELECT user_name,
+      bio,
+      contact_info,
+      pfp
+      FROM users
+      WHERE user_id = $1
+      `,
+      [userId]
+    );
+
+    if (rows.length === 0) {
+      return res.status(404).json({ error: "User not found." });
+    }
+
+    const { user_name, bio, contact_info, pfp } = rows[0];
+
+    let pfpBase64 = null;
+    if (pfp) {
+      pfpBase64 = pfp.toString("base64");
+    }
+
+    // Send everything as JSON
+    return res.status(200).json({
+      user_name,
+      bio,
+      contact_info,
+      pfp: pfpBase64, // null or “iVBORw0KGgoAAAANSUhE…” (Base64 string)
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: "Server error." });
+  }
+});
+
