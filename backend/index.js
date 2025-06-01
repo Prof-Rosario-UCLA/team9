@@ -14,7 +14,7 @@ const client = redis.createClient();
 client.connect().catch(console.error);
 const port = process.env.PORT
 
-// Middleware setup
+/* Middleware setup */
 app.use(cors({
     origin: "http://localhost:5173",
 }))
@@ -29,7 +29,7 @@ app.listen(port, () => {
   console.log("server has started on port", port)
 })
 
-// Authenticate the session token created during registration or login
+/* Authenticate the session token created during registration or login */
 function authenticateToken(req, res, next) {
 const authHeader = req.headers['authorization']
 const token = authHeader && authHeader.split(' ')[1]
@@ -44,7 +44,7 @@ jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
 
 module.exports = pool
 
-// Signup endpoint
+/* Signup endpoint */
 app.post('/signup', async (req, res) => {
 const { userName, email, password} = req.body 
 
@@ -74,12 +74,7 @@ try {
     [email, hashedPassword, userName]
   )
 
-  const user_id = newUser.rows[0].user_id
-
-  await client.query(
-    'INSERT INTO profiles (user_id) VALUES ($1)',
-    [user_id]
-  )
+  const user_id = newUser.rows[0].person_id
 
   // Commit transaction
   await client.query('COMMIT') 
@@ -91,7 +86,7 @@ try {
   )
 
   res.status(201).json({ token })
-  console.log("User and Profile created")
+  console.log("User created")
 
 } catch (err) {
   await client.query('ROLLBACK') 
@@ -102,7 +97,7 @@ try {
 }
 })
 
-// Login endpoint
+/* Login endpoint */
 app.post('/login', async (req, res) => {
 const { email, password } = req.body
 
@@ -136,3 +131,40 @@ try {
 console.log("Successful login")
 })
 
+/* Upload Profile Picture */
+app.post("/uploadPfp", authenticateToken, async (req, res) => {
+try {
+  const userId = req.user.userId;
+
+  if (!req.files || !req.files.pfp) {
+    return res.status(400).json({ error: "Profile picture is required." });
+  }
+
+  const imageFile = req.files.pfp;
+  const imgBuffer = imageFile.data;
+
+  const client = await pool.connect();
+    try {
+      await client.query("BEGIN");
+      // Suppose your users table has a column `profile_pic bytea`
+      const updateText = `
+        UPDATE users
+        SET pfp = $1
+        WHERE user_id = $2
+        RETURNING user_id
+      `;
+      await client.query(updateText, [imgBuffer, userId]);
+      await client.query("COMMIT");
+      res.status(200).json({ message: "Profile picture updated successfully!" });
+    } catch (dbErr) {
+      await client.query("ROLLBACK");
+      console.error(dbErr);
+      res.status(500).json({ error: "Database write failed." });
+    } finally {
+      client.release();
+    }
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send("Server Error");
+  }
+});
