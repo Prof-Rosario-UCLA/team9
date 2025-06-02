@@ -8,6 +8,7 @@ import SignUp from './SignUp.jsx';
 import SignIn from './SignIn.jsx';
 import MainPage from './MainPage.jsx';
 import SetupPage from './SetupPage';
+import ProtectedRoute from './ProtectedRoute.jsx';
 
 
 createRoot(document.getElementById('root')).render(
@@ -17,8 +18,8 @@ createRoot(document.getElementById('root')).render(
         <Route path="/" element={<LandingPage />} />
         <Route path="/signup" element={<SignUp />} />
         <Route path="/signin" element={<SignIn />} />
-        <Route path="/main" element={<MainPage />} />
-        <Route path="/setup" element={<SetupPage />} />
+        <Route path="/main" element={<ProtectedRoute><MainPage /></ProtectedRoute>} />
+        <Route path="/setup" element={<ProtectedRoute><SetupPage /></ProtectedRoute>} />
       </Routes>
     </BrowserRouter>
   </StrictMode>
