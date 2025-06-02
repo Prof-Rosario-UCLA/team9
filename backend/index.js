@@ -20,8 +20,6 @@ app.use(cors({
 }))
 app.use(fileUpload({
     limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit
-    useTempFiles: true,
-    tempFileDir: '/tmp/'
 }));
 app.use(express.json())
 
@@ -70,8 +68,8 @@ try {
   const hashedPassword = await bcrypt.hash(password, 10)
 
   const newUser = await client.query(
-    'INSERT INTO users (email, password, user_name) VALUES ($1, $2, $3) RETURNING user_id',
-    [email, hashedPassword, userName]
+    'INSERT INTO users (email, password, user_name, tutorial_completed) VALUES ($1, $2, $3, $4) RETURNING user_id',
+    [email, hashedPassword, userName, false]
   )
 
   const user_id = newUser.rows[0].person_id
@@ -138,9 +136,12 @@ try {
   const { user_name, bio, contact_info } = req.body;
 
   let imgBuffer = null;
+  let imgMime = null;
   if (req.files && req.files.pfp) {
     const imageFile = req.files.pfp;
     imgBuffer = imageFile.data;
+    imgMime = imageFile.mimetype;
+      console.log("  → pfp byte length:", imgBuffer.length);
   }
 
   const client = await pool.connect();
@@ -154,10 +155,11 @@ try {
           SET user_name = $1,
           bio = $2,
           contact_info = $3,
-          pfp = $4
-          WHERE user_id = $5
+          pfp = $4,
+          pfp_mime = $5
+          WHERE user_id = $6
         `;
-        params = [user_name, bio, contact_info, imgBuffer, userId];
+          params = [user_name, bio, contact_info, imgBuffer, imgMime, userId];
       } else {
         // No pfp
         updateText = `
@@ -195,7 +197,8 @@ app.get("/getProfile", authenticateToken, async (req, res) => {
       SELECT user_name,
       bio,
       contact_info,
-      pfp
+      pfp,
+      pfp_mime
       FROM users
       WHERE user_id = $1
       `,
@@ -206,19 +209,19 @@ app.get("/getProfile", authenticateToken, async (req, res) => {
       return res.status(404).json({ error: "User not found." });
     }
 
-    const { user_name, bio, contact_info, pfp } = rows[0];
+    const { user_name, bio, contact_info, pfp, pfp_mime } = rows[0];
 
     let pfpBase64 = null;
     if (pfp) {
       pfpBase64 = pfp.toString("base64");
     }
 
-    // Send everything as JSON
     return res.status(200).json({
       user_name,
       bio,
       contact_info,
-      pfp: pfpBase64, // null or “iVBORw0KGgoAAAANSUhE…” (Base64 string)
+      pfp: pfpBase64, 
+      pfp_mime,
     });
   } catch (err) {
     console.error(err);

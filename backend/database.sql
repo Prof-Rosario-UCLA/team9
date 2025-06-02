@@ -4,9 +4,11 @@ CREATE TABLE users (
     email VARCHAR(255) UNIQUE NOT NULL,
     password TEXT NOT NULL,
     user_name TEXT NOT NULL,
+    tutorial_completed BOOLEAN NOT NULL,
     bio TEXT,
     contact_info TEXT,
     pfp bytea,
+    pfp_mime TEXT,
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 

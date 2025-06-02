@@ -1,18 +1,89 @@
-import { useState, useRef } from 'react';
-const defaultAvatar = 'https://via.placeholder.com/150';
+import { useState, useRef, useEffect } from "react";
+import defaultAvatar from "./assets/defaultpfp.png";
 
 export default function ProfilePanel() {
   const [profilePic, setProfilePic] = useState(defaultAvatar);
+  const [selectedFile, setSelectedFile] = useState(null);
   const [username, setUsername] = useState('Your Username');
   const [bio, setBio] = useState('This is a short bio.');
   const [contactInfo, setContactInfo] = useState('you@example.com | +1 000 000 0000');
   const fileInputRef = useRef(null);
 
+  // Fetch the existing profile
+  useEffect(() => {
+    const token = localStorage.getItem("authToken");
+    fetch("http://localhost:8080/getProfile", {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    })
+      .then(async (res) => {
+        if (!res.ok) {
+          throw new Error("Failed to fetch profile");
+        }
+        return res.json();
+      })
+      .then((data) => {
+        setUsername(data.user_name || "");
+        setBio(data.bio || "");
+        setContactInfo(data.contact_info || "");
+
+        if (data.pfp) {
+          setProfilePic(`data:${data.pfp_mime};base64,${data.pfp}`);
+        } else {
+          setProfilePic(defaultAvatar);
+        }
+      })
+      .catch((err) => {
+        console.error("Error loading profile:", err);
+      });
+  }, []);
+
+  // When user picks a new file, store the File object and show preview
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
+      setSelectedFile(file);
       const url = URL.createObjectURL(file);
       setProfilePic(url);
+    }
+  };
+
+  // On “Save Changes,” bundle everything into a FormData and POST
+  const handleSubmit = async () => {
+    const token = localStorage.getItem("authToken");
+    const formData = new FormData();
+
+    formData.append("user_name", username);
+    formData.append("bio", bio);
+    formData.append("contact_info", contactInfo);
+
+    if (selectedFile) {
+      formData.append("pfp", selectedFile);
+    }
+
+    try {
+      const res = await fetch("http://localhost:8080/uploadBio", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: formData,
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        console.error("Failed to update:", err);
+        alert("Failed to update profile");
+        return;
+      }
+
+      alert("Profile updated successfully.");
+    } catch (err) {
+      console.error("Network error:", err);
+      alert("Network error while updating profile");
     }
   };
 
@@ -85,7 +156,13 @@ export default function ProfilePanel() {
       </form>
 
       <div className="mt-6 flex justify-end">
-        <button className="btn btn-info text-white">Save Changes</button>
+        <button
+          className="btn btn-info text-white"
+          onClick={handleSubmit}
+          type="button"
+        >
+          Save Changes
+        </button>
       </div>
     </div>
   );
