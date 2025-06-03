@@ -191,7 +191,18 @@ try {
 app.get("/getProfile", authenticateToken, async (req, res) => {
   try {
     const userId = req.user.userId;
+    const cacheKey = `profile:${userId}`;
 
+    const cached = await client.get(cacheKey);
+
+    if (cached) {
+      // Cache hit: parse the JSON and return immediately
+      //console.log("Cache hit!");
+      const profile = JSON.parse(cached);
+      return res.status(200).json(profile);
+    }
+
+    // If miss, go directly to DB.
     const { rows } = await pool.query(
       `
       SELECT user_name,
@@ -217,14 +228,20 @@ app.get("/getProfile", authenticateToken, async (req, res) => {
       pfpBase64 = pfp.toString("base64");
     }
 
-    return res.status(200).json({
+    const profile = {
       user_name,
       tutorial_completed,
       bio,
       contact_info,
-      pfp: pfpBase64, 
+      pfp: pfpBase64,
       pfp_mime,
+    };
+
+    await client.set(cacheKey, JSON.stringify(profile), {
+      EX: 3600,
     });
+
+    return res.status(200).json(profile);
   } catch (err) {
     console.error(err);
     return res.status(500).json({ error: "Server error." });
