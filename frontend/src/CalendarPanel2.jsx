@@ -12,14 +12,16 @@ export default function CalendarPanel2() {
 
   const mockChores = [];
   for (let day = 1; day <= 30; day++) {
-    for (let i = 1; i <= 5; i++) {
-      mockChores.push({
-        description: `Chore ${i} on day ${day}`,
-        assigned: i % 2 === 0 ? 'Alice' : null,
-        points: i * 2,
-        created: `2025-06-${String(day).padStart(2, '0')}T08:30`,
-        dueDate: `2025-${String(currentMonth.getMonth() + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}T12:00`
-      });
+    if (day % 3 === 0) {
+      for (let i = 1; i <= 3; i++) {
+        mockChores.push({
+          description: `Chore ${i} on day ${day}`,
+          assigned: i % 2 === 0 ? 'Alice' : null,
+          points: i * 2,
+          created: `2025-06-${String(day).padStart(2, '0')}T08:30`,
+          dueDate: `2025-${String(currentMonth.getMonth() + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}T12:00`
+        });
+      }
     }
   }
 
@@ -42,14 +44,14 @@ export default function CalendarPanel2() {
   const openDatePopup = (dateStr) => {
     const chores = getChoresForDate(dateStr);
     setSelectedDatePopup({ dateStr, chores });
-    setPopupPage(0); // reset page on open
+    setPopupPage(0);
   };
 
   const monthName = currentMonth.toLocaleString('default', { month: 'long' });
 
   return (
-    <div className="w-full h-full flex flex-col p-1 overflow-hidden">
-      <div className="flex justify-between items-center mb-1">
+    <div className="w-full h-full flex flex-col p-2 overflow-hidden">
+      <div className="flex justify-between items-center mb-2">
         <h2 className="text-info text-sm font-bold">{monthName} {year}</h2>
         <div className="space-x-1">
           <button className="btn btn-xs btn-outline btn-info" onClick={handlePrevMonth}>« Prev</button>
@@ -57,7 +59,7 @@ export default function CalendarPanel2() {
         </div>
       </div>
 
-      <div className="grid grid-cols-7 grid-rows-[repeat(5,1fr)] gap-[1px] flex-grow overflow-hidden">
+      <div className="max-w-5xl w-full mx-auto grid grid-cols-7 auto-rows-fr gap-1 sm:gap-2 md:gap-3">
         {[...Array(daysInMonth)].map((_, i) => {
           const day = i + 1;
           const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
@@ -67,8 +69,9 @@ export default function CalendarPanel2() {
           return (
             <div
               key={day}
-              className={`border p-1 rounded text-[10px] leading-tight flex flex-col items-start justify-start overflow-hidden
-                ${hasChores ? 'bg-info text-base-content' : 'bg-base-100 text-base-content'} hover:bg-base-200`}
+              className={`aspect-square w-full p-1 sm:p-2 rounded text-[10px] sm:text-xs leading-tight flex flex-col items-start justify-start overflow-hidden
+                bg-base-100 text-base-content border-2 transition-colors duration-150
+                ${hasChores ? 'border-purple-500' : 'border-base-300'} hover:border-purple-400`}
               onClick={() => openDatePopup(dateStr)}
             >
               <div className="font-bold">{day}</div>
