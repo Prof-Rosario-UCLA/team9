@@ -1,16 +1,49 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from "react";
 import { useNavigate } from 'react-router-dom';
 import furinaPic from './assets/furina.jpg';
 import backgroundImg from './assets/landingpage.jpg';
 import CalendarPanel2 from './CalendarPanel2';
 import ProfilePanel from './ProfilePanel';
 import ThemeToggle from './ThemeToggle';
+import defaultAvatar from "./assets/defaultpfp.png";
 
 export default function MainPage() {
   const [tutorialStep, setTutorialStep] = useState(0);
   const [showTutorial] = useState(() => localStorage.getItem('setupComplete') !== 'true');
   const [activePanel, setActivePanel] = useState(null);
+  const [username, setUsername] = useState('Your Username');
+  const [profilePic, setProfilePic] = useState(defaultAvatar);
   const navigate = useNavigate();
+
+    // Fetch the existing profile
+    useEffect(() => {
+      const token = localStorage.getItem("authToken");
+      fetch("http://localhost:8080/getProfile", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      })
+        .then(async (res) => {
+          if (!res.ok) {
+            throw new Error("Failed to fetch profile");
+          }
+          return res.json();
+        })
+        .then((data) => {
+          setUsername(data.user_name || "Fetching...");
+  
+          if (data.pfp) {
+            setProfilePic(`data:${data.pfp_mime};base64,${data.pfp}`);
+          } else {
+            setProfilePic(defaultAvatar);
+          }
+        })
+        .catch((err) => {
+          console.error("Error loading profile:", err);
+        });
+    }, []);
 
   const renderPopup = () => {
     if (!activePanel) return null;
@@ -72,10 +105,10 @@ export default function MainPage() {
             <div className="flex items-center gap-2">
               <div className="avatar">
                 <div className="w-10 rounded-full ring-2 ring-primary ring-offset-base-100 ring-offset-2">
-                  <img src="https://img.daisyui.com/images/profile/demo/spiderperson@192.webp" />
+                  <img src={profilePic} alt="Profile" />
                 </div>
               </div>
-              <div className="text-sm font-semibold text-base-content">Username</div>
+              <div className="text-sm font-semibold text-base-content">{username}</div>
               {/* ↑ text-base-content auto-adjusts with theme */}
             </div>
             <ThemeToggle />

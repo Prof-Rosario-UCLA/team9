@@ -195,6 +195,7 @@ app.get("/getProfile", authenticateToken, async (req, res) => {
     const { rows } = await pool.query(
       `
       SELECT user_name,
+      tutorial_completed,
       bio,
       contact_info,
       pfp,
@@ -209,7 +210,7 @@ app.get("/getProfile", authenticateToken, async (req, res) => {
       return res.status(404).json({ error: "User not found." });
     }
 
-    const { user_name, bio, contact_info, pfp, pfp_mime } = rows[0];
+    const { user_name, tutorial_completed, bio, contact_info, pfp, pfp_mime } = rows[0];
 
     let pfpBase64 = null;
     if (pfp) {
@@ -218,6 +219,7 @@ app.get("/getProfile", authenticateToken, async (req, res) => {
 
     return res.status(200).json({
       user_name,
+      tutorial_completed,
       bio,
       contact_info,
       pfp: pfpBase64, 
