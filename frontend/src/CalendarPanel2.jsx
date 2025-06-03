@@ -69,13 +69,18 @@ export default function CalendarPanel2() {
           return (
             <div
               key={day}
-              className={`aspect-square w-full p-1 sm:p-2 rounded text-[10px] sm:text-xs leading-tight flex flex-col items-start justify-start overflow-hidden
+              className={`p-1 sm:p-2 rounded text-[9px] sm:text-[11px] leading-tight flex flex-col items-start justify-start overflow-hidden
                 bg-base-100 text-base-content border-2 transition-colors duration-150
                 ${hasChores ? 'border-purple-500' : 'border-base-300'} hover:border-purple-400`}
               onClick={() => openDatePopup(dateStr)}
+              style={{
+                width: '90%',
+                aspectRatio: '1 / 1',
+                margin: 'auto',
+              }}
             >
               <div className="font-bold">{day}</div>
-              <div className="w-full min-w-0">
+              <div className="w-full min-w-0 flex-grow overflow-y-auto" style={{ fontSize: '0.85rem', lineHeight: '1.2' }}>
                 {chores.slice(0, 2).map((chore, j) => (
                   <div key={j} className="truncate">• {chore.description}</div>
                 ))}

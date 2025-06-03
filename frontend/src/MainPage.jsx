@@ -45,27 +45,35 @@ export default function MainPage() {
         });
     }, []);
 
-  const renderPopup = () => {
-    if (!activePanel) return null;
-
-    let content = '';
-    if (activePanel === 'Profile') content = <ProfilePanel />;
-    if (activePanel === 'Group') content = 'Here you manage your group.';
-    if (activePanel === 'Statistics') content = 'Your chore stats and points.';
-    if (activePanel === 'Calendar2') content = <CalendarPanel2 />;
-
-    return (
-      <div className="absolute inset-0 bg-base-100/80 backdrop-blur-sm p-6 z-10 flex flex-col items-center justify-center text-base-content border-l border-info overflow-auto">
-        {/* ↑ ADDED overflow-auto to make modal scrollable on small screens */}
-        <div className="text-center max-w-6xl w-full">
-          <div className="text-lg">{content}</div>
-          <button className="mt-8 btn btn-outline btn-info" onClick={() => setActivePanel(null)}>
-            Close
-          </button>
+    const renderPopup = () => {
+      if (!activePanel) return null;
+    
+      let content = '';
+      let popupStyle = {};
+      if (activePanel === 'Profile') content = <ProfilePanel />;
+      if (activePanel === 'Group') content = 'Here you manage your group.';
+      if (activePanel === 'Statistics') content = 'Your chore stats and points.';
+      if (activePanel === 'Calendar2') {
+        content = <CalendarPanel2 />;
+        popupStyle = {
+          overflow: 'hidden',  // disable scroll for calendar popup
+        };
+      }
+    
+      return (
+        <div
+          className="absolute inset-0 bg-base-100/80 backdrop-blur-sm p-6 z-10 flex flex-col items-center justify-center text-base-content border-l border-info"
+          style={popupStyle}
+        >
+          <div className="text-center max-w-6xl w-full">
+            <div className="text-lg">{content}</div>
+            <button className="mt-8 btn btn-outline btn-info" onClick={() => setActivePanel(null)}>
+              Close
+            </button>
+          </div>
         </div>
-      </div>
-    );
-  };
+      );
+    };
 
   return (
     <div className="h-screen w-screen overflow-hidden relative">
