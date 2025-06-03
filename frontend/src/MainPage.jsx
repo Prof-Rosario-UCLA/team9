@@ -86,7 +86,7 @@ export default function MainPage() {
             className="btn btn-ghost btn-sm text-base-content"
             onClick={() => {
               localStorage.removeItem("authToken");
-              navigate("/login"); // adjust route if needed
+              navigate("/signin"); 
             }}
             aria-label="Log Out"
           >
