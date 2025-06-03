@@ -11,18 +11,17 @@ export default function CalendarPanel2() {
   const ITEMS_PER_PAGE = 4;
 
   const mockChores = [];
-
-for (let day = 1; day <= 28; day++) {
-  for (let i = 1; i <= 5; i++) {
-    mockChores.push({
-      description: `Chore ${i} on day ${day}`,
-      assigned: i % 2 === 0 ? 'Alice' : null,
-      points: i * 2,
-      created: `2025-05-${String(day).padStart(2, '0')}T08:30`,
-      dueDate: `2025-${String(currentMonth.getMonth() + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}T12:00`
-    });
+  for (let day = 1; day <= 30; day++) {
+    for (let i = 1; i <= 5; i++) {
+      mockChores.push({
+        description: `Chore ${i} on day ${day}`,
+        assigned: i % 2 === 0 ? 'Alice' : null,
+        points: i * 2,
+        created: `2025-06-${String(day).padStart(2, '0')}T08:30`,
+        dueDate: `2025-${String(currentMonth.getMonth() + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}T12:00`
+      });
+    }
   }
-}
 
   const year = currentMonth.getFullYear();
   const month = currentMonth.getMonth();
@@ -49,33 +48,37 @@ for (let day = 1; day <= 28; day++) {
   const monthName = currentMonth.toLocaleString('default', { month: 'long' });
 
   return (
-    <div className="w-full h-full p-6">
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-3xl font-bold text-info text-center">{monthName} {year}</h2>
-        <div className="space-x-2">
-          <button className="btn btn-sm btn-outline btn-info" onClick={handlePrevMonth}>« Prev</button>
-          <button className="btn btn-sm btn-outline btn-info" onClick={handleNextMonth}>Next »</button>
+    <div className="w-full h-full flex flex-col p-1 overflow-hidden">
+      <div className="flex justify-between items-center mb-1">
+        <h2 className="text-info text-sm font-bold">{monthName} {year}</h2>
+        <div className="space-x-1">
+          <button className="btn btn-xs btn-outline btn-info" onClick={handlePrevMonth}>« Prev</button>
+          <button className="btn btn-xs btn-outline btn-info" onClick={handleNextMonth}>Next »</button>
         </div>
       </div>
 
-      <div className="grid grid-cols-7 gap-2">
+      <div className="grid grid-cols-7 grid-rows-[repeat(5,1fr)] gap-[1px] flex-grow overflow-hidden">
         {[...Array(daysInMonth)].map((_, i) => {
           const day = i + 1;
           const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
           const chores = getChoresForDate(dateStr);
+          const hasChores = chores.length > 0;
 
           return (
             <div
               key={day}
-              className="border border-base-300 rounded p-2 bg-base-100 h-28 overflow-hidden hover:bg-base-200 cursor-pointer"
+              className={`border p-1 rounded text-[10px] leading-tight flex flex-col items-start justify-start overflow-hidden
+                ${hasChores ? 'bg-info text-base-content' : 'bg-base-100 text-base-content'} hover:bg-base-200`}
               onClick={() => openDatePopup(dateStr)}
             >
-              <div className="font-bold text-info">{day}</div>
-              <div className="text-sm mt-1 text-white">
+              <div className="font-bold">{day}</div>
+              <div className="w-full min-w-0">
                 {chores.slice(0, 2).map((chore, j) => (
                   <div key={j} className="truncate">• {chore.description}</div>
                 ))}
-                {chores.length > 2 && <div className="text-xs italic text-gray-400">+{chores.length - 2} more</div>}
+                {chores.length > 2 && (
+                  <div className="italic text-base-content/70 text-[9px]">+{chores.length - 2} more</div>
+                )}
               </div>
             </div>
           );
@@ -83,8 +86,8 @@ for (let day = 1; day <= 28; day++) {
       </div>
 
       {selectedDatePopup && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
-          <div className="bg-base-100 rounded-box p-6 w-full max-w-md text-sm text-white border border-info shadow-lg max-h-[400px] flex flex-col">
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-base-100 rounded-box p-4 w-full max-w-md text-sm text-base-content border border-info shadow-lg max-h-[90vh] flex flex-col overflow-hidden">
             <h3 className="text-xl text-info font-bold mb-4 text-center">
               Chores for {selectedDatePopup.dateStr}
             </h3>
@@ -137,8 +140,8 @@ for (let day = 1; day <= 28; day++) {
       )}
 
       {selectedChore && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
-          <div className="bg-base-100 rounded-box p-6 w-full max-w-md text-sm text-white border border-info shadow-lg">
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-base-100 rounded-box p-4 w-full max-w-md text-sm text-base-content border border-info shadow-lg max-h-[90vh] overflow-auto">
             <h3 className="text-xl text-info font-bold mb-4 text-center">{selectedChore.description}</h3>
             <p className="mb-2">Assigned: {selectedChore.assigned || 'Unclaimed'}</p>
             <p className="mb-2">Points: {selectedChore.points}</p>
