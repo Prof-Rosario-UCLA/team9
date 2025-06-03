@@ -82,18 +82,16 @@ export default function MainPage() {
           <a className="btn btn-ghost text-xl text-info">GitBlame</a>
         </div>
         <div className="flex-none">
-          <div className="dropdown dropdown-end">
-            <div tabIndex={0} role="button" className="btn btn-square btn-ghost text-base-content">
-              {/* ↑ CHANGED text-white to theme-aware text-base-content */}
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 12h.01M12 12h.01M19 12h.01" />
-              </svg>
-            </div>
-            <ul tabIndex={0} className="dropdown-content menu bg-base-100 rounded-box z-10 w-52 p-2 shadow-sm space-y-1 text-base-content">
-              <li><a>Item 1</a></li>
-              <li><a>Item 2</a></li>
-            </ul>
-          </div>
+          <button
+            className="btn btn-ghost btn-sm text-base-content"
+            onClick={() => {
+              localStorage.removeItem("authToken");
+              navigate("/login"); // adjust route if needed
+            }}
+            aria-label="Log Out"
+          >
+            Log Out
+          </button>
         </div>
       </div>
 
