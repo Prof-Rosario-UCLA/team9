@@ -130,8 +130,8 @@ export default function MainPage() {
 
         {/* Content */}
         <div className="flex-1 relative overflow-auto">
-          {showTutorial && tutorialStep === 1 && (
-            <div className="absolute inset-0 flex items-center justify-center p-2">
+        {showTutorial && (
+            <div className="absolute inset-0 flex items-center justify-center p-2 z-30">
               <button className="btn btn-info text-base-100 text-lg px-6 animate-pulse" onClick={() => navigate('/setup')}>
                 Get Started
               </button>
@@ -145,7 +145,7 @@ export default function MainPage() {
       {showTutorial && (
       <>
         {/* Block interaction with rest of the page */}
-        <div className="absolute inset-0 z-40 bg-transparent pointer-events-auto" />
+        <div className="absolute inset-0 z-40 bg-transparent pointer-events-none" />
 
         {/* Tutorial UI */}
         <div className="absolute bottom-4 right-4 flex flex-col items-end gap-3 z-50 max-w-full px-2">
