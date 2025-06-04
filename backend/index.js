@@ -134,6 +134,7 @@ app.post("/uploadBio", authenticateToken, async (req, res) => {
 try {
   const userId = req.user.userId;
   const { user_name, bio, contact_info } = req.body;
+  const cacheKey = `profile:${userId}`;
 
   let imgBuffer = null;
   let imgMime = null;
@@ -141,12 +142,12 @@ try {
     const imageFile = req.files.pfp;
     imgBuffer = imageFile.data;
     imgMime = imageFile.mimetype;
-      console.log("  → pfp byte length:", imgBuffer.length);
   }
 
-  const client = await pool.connect();
+  const pgClient = await pool.connect();
     try {
-      await client.query("BEGIN");
+      await pgClient.query("BEGIN");
+
       let updateText, params;
       if (imgBuffer) {
         // With pfp
@@ -171,15 +172,17 @@ try {
         `;
         params = [user_name, bio, contact_info, userId];
       }
-      await client.query(updateText, params);
-      await client.query("COMMIT");
+      await pgClient.query(updateText, params);
+      await pgClient.query("COMMIT");
+      await client.del(cacheKey);
+
       res.status(200).json({ message: "Profile picture updated successfully!" });
     } catch (dbErr) {
-      await client.query("ROLLBACK");
+      await pgClient.query("ROLLBACK");
       console.error(dbErr);
       res.status(500).json({ error: "Database write failed." });
     } finally {
-      client.release();
+      pgClient.release();
     }
   } catch (err) {
     console.error(err.message);
@@ -244,6 +247,77 @@ app.get("/getProfile", authenticateToken, async (req, res) => {
     return res.status(200).json(profile);
   } catch (err) {
     console.error(err);
+    return res.status(500).json({ error: "Server error." });
+  }
+});
+
+/* Retrieve User's Group Chores */
+app.get("/getMyGroupTasks", authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.userId;
+
+    // Get group information
+    const { rows: profileRows } = await pool.query(
+      `
+      SELECT
+        p.group_id,
+        g.name AS group_name
+      FROM profiles p
+      JOIN groups   g ON p.group_id = g.group_id
+      WHERE p.user_id = $1
+      `,
+      [userId]
+    );
+
+    if (profileRows.length === 0) {
+      return res.status(200).json({ inGroup: false });
+    }
+
+    const { group_id, group_name } = profileRows[0];
+
+    // Fetch tasks
+    const { rows: taskRows } = await pool.query(
+      `
+      SELECT
+        task_id,
+        description,
+        due_date,
+        point_worth,
+        created_at,
+        claimed_by,
+        claimed_at,
+        completed_at,
+        is_completed
+      FROM tasks
+      WHERE group_id = $1
+      ORDER BY due_date ASC NULLS LAST, created_at ASC
+      `,
+      [group_id]
+    );
+
+    // 3) Serialize each task into a plain object
+    const tasks = taskRows.map((t) => ({
+      task_id:      t.task_id,
+      description:  t.description,
+      due_date:     t.due_date,         // “YYYY‐MM‐DD” (string) or null
+      point_worth:  t.point_worth,
+      created_at:   t.created_at,       // JS Date auto‐serialized to ISO
+      claimed_by:   t.claimed_by,       // user_id of the claimer, or null if not claimed
+      claimed_at:   t.claimed_at,       // JS Date or null if not claimed
+      completed_at: t.completed_at,     // JS Date or null if not completed
+      is_completed: t.is_completed      // boolean
+    }));
+
+    return res.status(200).json({
+      inGroup: true,
+      group: {
+        group_id,
+        group_name,
+        tasks
+      }
+    });
+  } catch (err) {
+    console.error("Error in /getMyGroupTasks:", err);
     return res.status(500).json({ error: "Server error." });
   }
 });
