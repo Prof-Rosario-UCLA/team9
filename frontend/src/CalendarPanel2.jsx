@@ -59,7 +59,9 @@ export default function CalendarPanel2() {
         </div>
       </div>
 
-      <div className="max-w-5xl w-full mx-auto grid grid-cols-7 auto-rows-fr gap-1 sm:gap-2 md:gap-3">
+      <div className="max-w-5xl w-full mx-auto scale-[0.90] sm:scale-[0.95] md:scale-100 md:-translate-y-2 grid grid-cols-7 auto-rows-fr gap-1 sm:gap-2 md:gap-3">
+
+
         {[...Array(daysInMonth)].map((_, i) => {
           const day = i + 1;
           const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;

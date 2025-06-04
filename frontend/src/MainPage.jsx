@@ -6,6 +6,10 @@ import CalendarPanel2 from './CalendarPanel2';
 import ProfilePanel from './ProfilePanel';
 import ThemeToggle from './ThemeToggle';
 import defaultAvatar from "./assets/defaultpfp.png";
+import StatisticsPanel from './LeaderBoard';
+import GroupPanel from './GroupPanel';
+import ChorePanel from './ChorePanel';
+
 
 export default function MainPage() {
   const [tutorialStep, setTutorialStep] = useState(0);
@@ -51,23 +55,26 @@ export default function MainPage() {
       let content = '';
       let popupStyle = {};
       if (activePanel === 'Profile') content = <ProfilePanel />;
-      if (activePanel === 'Group') content = 'Here you manage your group.';
-      if (activePanel === 'Statistics') content = 'Your chore stats and points.';
+      if (activePanel === 'Group') content = <GroupPanel />;
+      if (activePanel === 'Statistics') content = <StatisticsPanel />;
       if (activePanel === 'Calendar2') {
         content = <CalendarPanel2 />;
         popupStyle = {
-          overflow: 'hidden',  // disable scroll for calendar popup
+          overflow: 'hidden',
         };
       }
+      if (activePanel === 'Chore') content = <ChorePanel />;
     
       return (
         <div
-          className="absolute inset-0 bg-base-100/80 backdrop-blur-sm p-6 z-10 flex flex-col items-center justify-center text-base-content border-l border-info"
+          className="absolute top-14 left-0 right-0 bottom-0 md:left-56 bg-base-100/80 backdrop-blur-sm z-10 flex flex-col items-center justify-center text-base-content px-2 sm:px-6"
           style={popupStyle}
         >
-          <div className="text-center max-w-6xl w-full">
-            <div className="text-lg">{content}</div>
-            <button className="mt-8 btn btn-outline btn-info" onClick={() => setActivePanel(null)}>
+          <div className="max-w-6xl w-full max-h-[85vh] flex flex-col justify-between items-center">
+            <div className="flex-1 w-full overflow-auto rounded-box">
+              {content}
+            </div>
+            <button className="mt-4 btn btn-outline btn-info" onClick={() => setActivePanel(null)}>
               Close
             </button>
           </div>
@@ -77,7 +84,7 @@ export default function MainPage() {
 
   return (
     <div className="h-screen w-screen overflow-hidden relative">
-      <div className="navbar bg-base-100 text-base-content shadow-md border-b border-base-300">
+      <div className="navbar h-12 sm:h-14 px-2 sm:px-4 bg-base-100 text-base-content shadow-md border-b border-base-300">
         <div className="flex-1">
           <a className="btn btn-ghost text-xl text-info">GitBlame</a>
         </div>
@@ -101,11 +108,12 @@ export default function MainPage() {
         {/* Sidebar */}
         <div className="bg-base-100 w-full md:w-56 flex-shrink-0 flex flex-col justify-between overflow-auto">
           {/* ↑ ADDED overflow-auto to allow scroll on small screen sidebar */}
-          <ul className="menu p-2 rounded-box text-info">
-            <li><button onClick={() => setActivePanel('Profile')}>Profile</button></li>
-            <li><button onClick={() => setActivePanel('Group')}>Group</button></li>
-            <li><button onClick={() => setActivePanel('Statistics')}>Statistics</button></li>
-            <li><button onClick={() => setActivePanel('Calendar2')}>Calendar</button></li>
+          <ul className="flex flex-row md:flex-col flex-wrap justify-center md:justify-start items-center gap-2 md:gap-1 p-2 text-info text-xs sm:text-sm">
+          <li><button onClick={() => setActivePanel('Profile')}>Profile</button></li>
+          <li><button onClick={() => setActivePanel('Group')}>Group</button></li>
+          <li><button onClick={() => setActivePanel('Statistics')}>Statistics</button></li>
+          <li><button onClick={() => setActivePanel('Chore')}>Chore</button></li>
+          <li><button onClick={() => setActivePanel('Calendar2')}>Calendar</button></li>
           </ul>
           <div className="p-3 border-t border-base-300 flex items-center justify-between gap-2">
             <div className="flex items-center gap-2">
@@ -123,12 +131,9 @@ export default function MainPage() {
 
         {/* Content */}
         <div className="flex-1 relative overflow-auto">
-          {/* ↑ CHANGED from overflow-hidden to overflow-auto to allow vertical scrolling */}
           {showTutorial && tutorialStep === 1 && (
             <div className="absolute inset-0 flex items-center justify-center p-2">
-              {/* ↑ ADDED padding to ensure the button doesn't get cut off */}
               <button className="btn btn-info text-base-100 text-lg px-6 animate-pulse" onClick={() => navigate('/setup')}>
-                {/* ↑ CHANGED text-white to text-base-100 (which matches btn-info bg) */}
                 Get Started
               </button>
             </div>

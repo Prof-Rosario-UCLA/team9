@@ -9,6 +9,7 @@ import SignIn from './SignIn.jsx';
 import MainPage from './MainPage.jsx';
 import SetupPage from './SetupPage';
 import ProtectedRoute from './ProtectedRoute.jsx';
+import LeaderBoard from './LeaderBoard';
 
 
 createRoot(document.getElementById('root')).render(
@@ -18,6 +19,7 @@ createRoot(document.getElementById('root')).render(
         <Route path="/" element={<LandingPage />} />
         <Route path="/signup" element={<SignUp />} />
         <Route path="/signin" element={<SignIn />} />
+        <Route path="/leaderboard" element={<LeaderBoard />} />
         <Route path="/main" element={<ProtectedRoute><MainPage /></ProtectedRoute>} />
         <Route path="/setup" element={<ProtectedRoute><SetupPage /></ProtectedRoute>} />
       </Routes>
