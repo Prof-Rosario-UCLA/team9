@@ -106,7 +106,7 @@ export default function ChorePanel() {
     const pageItems = chores.slice(start, start + ITEMS_PER_PAGE);
 
     return (
-      <div
+      <section
         className={`flex-1 flex flex-col justify-between bg-base-200 rounded-box drop-zone-${type === 'unclaimed' ? 'unclaimed' : 'mine'}`}
         style={{
           height: '176px',
@@ -116,28 +116,27 @@ export default function ChorePanel() {
           overflow: 'hidden',
         }}
       >
-        <div>
+        <header>
           <h2 className={`text-sm font-bold mb-1 ${type === 'unclaimed' ? 'text-info' : 'text-success'}`}>
             {type === 'unclaimed' ? 'Unclaimed Chores' : 'Your Area'}
           </h2>
-          <div className="flex flex-col gap-1">
-            {pageItems.map(item => (
-              <div
-                key={item.id}
-                className={`text-xs p-1 bg-base-100 rounded shadow hover:bg-base-300 ${
-                  draggingItem?.id === item.id ? 'opacity-50 pointer-events-none' : ''
-                }`}
-                onMouseDown={(e) => handleMouseDown(item, type, e)}
-                onTouchStart={(e) => handleMouseDown(item, type, e)}
-                onClick={() => setSelectedChore(item)}
-              >
-                {item.title}
-              </div>
-            ))}
-          </div>
+        </header>
+
+        <div className="flex flex-col gap-1">
+          {pageItems.map(item => (
+            <article
+              key={item.id}
+              className={`text-xs p-1 bg-base-100 rounded shadow hover:bg-base-300 ${draggingItem?.id === item.id ? 'opacity-50 pointer-events-none' : ''}`}
+              onMouseDown={(e) => handleMouseDown(item, type, e)}
+              onTouchStart={(e) => handleMouseDown(item, type, e)}
+              onClick={() => setSelectedChore(item)}
+            >
+              {item.title}
+            </article>
+          ))}
         </div>
 
-        <div>
+        <footer>
           {renderPagination(page, setPage, chores.length)}
           {type === 'mine' && chores.length > 0 && (
             <button
@@ -147,8 +146,8 @@ export default function ChorePanel() {
               Claim Chores
             </button>
           )}
-        </div>
-      </div>
+        </footer>
+      </section>
     );
   };
 
@@ -167,48 +166,48 @@ export default function ChorePanel() {
   };
 
   return (
-    <div className="w-full h-full p-2 md:p-4 scale-[0.93] sm:scale-100 overflow-hidden">
-      <div className="flex mb-2 gap-2">
+    <main className="w-full h-full p-2 md:p-4 scale-[0.93] sm:scale-100 overflow-hidden">
+      <nav className="flex justify-center mb-4 gap-2">
         <button className={`btn btn-xs ${activeTab === 'view' ? 'btn-info' : ''}`} onClick={() => setActiveTab('view')}>View</button>
         <button className={`btn btn-xs ${activeTab === 'create' ? 'btn-info' : ''}`} onClick={() => setActiveTab('create')}>Create</button>
-      </div>
+      </nav>
 
       {activeTab === 'view' ? (
-        <div className="flex flex-col md:flex-row gap-2 md:gap-4">
+        <section className="flex flex-col md:flex-row gap-2 md:gap-4">
           {renderList(unclaimedChores, 'unclaimed', pageUnclaimed, setPageUnclaimed)}
           {renderList(myChores, 'mine', pageMine, setPageMine)}
-        </div>
+        </section>
       ) : (
-        <div className="flex items-center justify-center h-full">
-          <form onSubmit={handleCreateSubmit} className="bg-base-200 p-4 rounded-box flex flex-col gap-3 max-w-md w-full">
+        <section className="flex flex-col items-center justify-center h-full gap-4">
+          <form onSubmit={handleCreateSubmit} className="bg-base-200 p-4 rounded-box flex flex-col gap-3 w-full max-w-sm">
             <h3 className="text-lg font-bold text-info">Create a Chore</h3>
             <input
-              className="input input-sm input-bordered"
+              className="input input-sm input-bordered w-full"
               placeholder="Description"
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               required
             />
             <input
-              type="date"
-              className="input input-sm input-bordered"
+              type="datetime-local"
+              className="input input-sm input-bordered w-full"
               value={formData.due_date}
               onChange={(e) => setFormData({ ...formData, due_date: e.target.value })}
             />
             <input
               type="number"
-              className="input input-sm input-bordered"
+              className="input input-sm input-bordered w-full"
               placeholder="Point Worth"
               value={formData.point_worth}
               onChange={(e) => setFormData({ ...formData, point_worth: parseInt(e.target.value || '0') })}
             />
-            <button className="btn btn-info btn-sm text-white">Add Chore</button>
+            <button className="btn btn-info btn-sm text-white w-full">Add Chore</button>
           </form>
-        </div>
+        </section>
       )}
 
       {selectedChore && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+        <section role="dialog" aria-modal="true" className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
           <div className="bg-base-100 p-6 rounded-box shadow max-w-md w-full">
             <h3 className="text-xl font-bold text-info mb-2">{selectedChore.title}</h3>
             <p className="mb-4">{selectedChore.description}</p>
@@ -216,8 +215,8 @@ export default function ChorePanel() {
               Close
             </button>
           </div>
-        </div>
+        </section>
       )}
-    </div>
+    </main>
   );
 }
