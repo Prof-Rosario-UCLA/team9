@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState,  useEffect } from "react";
 import { useNavigate } from 'react-router-dom';
 import furinaPic from './assets/furina.jpg';
 import backgroundImg from './assets/landingpage.jpg';
@@ -9,7 +9,7 @@ import defaultAvatar from "./assets/defaultpfp.png";
 import StatisticsPanel from './LeaderBoard';
 import GroupPanel from './GroupPanel';
 import ChorePanel from './ChorePanel';
-
+import InboxPanel from './InboxPanel';
 
 export default function MainPage() {
   const [tutorialStep, setTutorialStep] = useState(0);
@@ -57,6 +57,7 @@ export default function MainPage() {
       if (activePanel === 'Profile') content = <ProfilePanel />;
       if (activePanel === 'Group') content = <GroupPanel />;
       if (activePanel === 'Statistics') content = <StatisticsPanel />;
+      if (activePanel === 'Inbox') content = <InboxPanel />;
       if (activePanel === 'Calendar2') {
         content = <CalendarPanel2 />;
         popupStyle = {
@@ -105,13 +106,14 @@ export default function MainPage() {
       {/* Sidebar + Main Content */}
       <div className="flex flex-col md:flex-row h-[calc(100%-4rem)] bg-cover bg-center bg-no-repeat overflow-hidden" style={{ backgroundImage: `url(${backgroundImg})` }}>
         <div className="bg-base-100 w-full md:w-56 flex-shrink-0 flex flex-col justify-between overflow-auto">
-          <ul className="flex flex-row md:flex-col flex-wrap justify-center md:justify-start items-center gap-2 md:gap-1 p-2 text-info text-xs sm:text-sm">
+        <ul className="flex flex-row md:flex-col flex-wrap justify-center md:justify-start items-center gap-2 md:gap-1 p-2 text-info text-xs sm:text-sm">
           <li><button onClick={() => setActivePanel('Profile')}>Profile</button></li>
           <li><button onClick={() => setActivePanel('Group')}>Group</button></li>
           <li><button onClick={() => setActivePanel('Statistics')}>Statistics</button></li>
           <li><button onClick={() => setActivePanel('Chore')}>Chore</button></li>
           <li><button onClick={() => setActivePanel('Calendar2')}>Calendar</button></li>
-          </ul>
+          <li><button onClick={() => setActivePanel('Inbox')}>Inbox</button></li>
+        </ul>
           <div className="p-3 border-t border-base-300 flex items-center justify-between gap-2">
             <div className="flex items-center gap-2">
               <div className="avatar">
@@ -141,27 +143,38 @@ export default function MainPage() {
 
       {/* Tutorial Overlay */}
       {showTutorial && (
+      <>
+        {/* Block interaction with rest of the page */}
+        <div className="absolute inset-0 z-40 bg-transparent pointer-events-auto" />
+
+        {/* Tutorial UI */}
         <div className="absolute bottom-4 right-4 flex flex-col items-end gap-3 z-50 max-w-full px-2">
-          {/* ↑ ADDED max-w-full and px-2 to prevent it from going offscreen */}
           <div className="bg-base-100 text-base-content p-4 rounded-xl shadow-md max-w-sm w-full text-sm leading-relaxed translate-y-[-10px]">
             {tutorialStep === 0 && (
               <>
                 Welcome to <span className="text-info font-semibold">GitBlame</span>!
                 This app helps manage chores fairly using groups, calendars, and leaderboards.
-                <div className="mt-2 text-info font-semibold text-right cursor-pointer hover:underline" onClick={() => setTutorialStep(1)}>
+                <div
+                  className="mt-2 text-info font-semibold text-right cursor-pointer hover:underline"
+                  onClick={() => setTutorialStep(1)}
+                >
                   Click to continue →
                 </div>
               </>
             )}
-            {tutorialStep === 1 && <>I’ll walk you through getting started. Begin by clicking the “Get Started” button!</>}
+            {tutorialStep === 1 && (
+              <>I’ll walk you through getting started. Begin by clicking the “Get Started” button!</>
+            )}
           </div>
+
           <div className="avatar animate-bounce">
             <div className="w-20 rounded-full ring-2 ring-info ring-offset-base-100 ring-offset-2">
               <img src={furinaPic} alt="Guide" />
             </div>
           </div>
         </div>
-      )}
+      </>
+    )}
     </div>
   );
 }
