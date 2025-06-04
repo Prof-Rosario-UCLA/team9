@@ -84,7 +84,6 @@ export default function GroupPanel() {
           <div className="flex flex-col gap-4">
             <h2 className="text-info font-bold text-lg sm:text-xl text-center">Create a New Group</h2>
             <input type="text" placeholder="Group name..." className="input input-bordered w-full" />
-            <textarea placeholder="Description..." className="textarea textarea-bordered w-full" />
             <button className="btn btn-success">Create Group</button>
           </div>
         );
