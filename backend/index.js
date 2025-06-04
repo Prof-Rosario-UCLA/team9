@@ -295,7 +295,7 @@ app.get("/getMyGroupTasks", authenticateToken, async (req, res) => {
       [group_id]
     );
 
-    // 3) Serialize each task into a plain object
+    // Serialize each task into a plain object
     const tasks = taskRows.map((t) => ({
       task_id:      t.task_id,
       description:  t.description,
@@ -319,6 +319,59 @@ app.get("/getMyGroupTasks", authenticateToken, async (req, res) => {
   } catch (err) {
     console.error("Error in /getMyGroupTasks:", err);
     return res.status(500).json({ error: "Server error." });
+  }
+});
+
+/* Group Creation API */
+app.post("/createGroup", authenticateToken, async (req, res) => {
+  const userId = req.user.userId;
+  const { name } = req.body;
+
+  // Validate that a group name was provided
+  if (!name || typeof name !== "string" || name.trim().length === 0) {
+    return res.status(400).json({ error: "Group name is required." });
+  }
+
+  const pgClient = await pool.connect();
+  try {
+    await pgClient.query("BEGIN");
+
+    // Insert into groups, returning the new group_id
+    const insertGroupText = `
+      INSERT INTO groups (owner_user_id, name)
+      VALUES ($1, $2)
+      RETURNING group_id, name
+    `;
+    const insertGroupValues = [userId, name.trim()];
+    const {
+      rows: [newGroup],
+    } = await pgClient.query(insertGroupText, insertGroupValues);
+
+
+    // Insert into profiles so that the creator automatically joins their own group
+    const insertProfileText = `
+      INSERT INTO profiles (user_id, group_id)
+      VALUES ($1, $2)
+      RETURNING profile_id
+    `;
+    const insertProfileValues = [userId, newGroup.group_id];
+    await pgClient.query(insertProfileText, insertProfileValues);
+
+    await pgClient.query("COMMIT");
+
+    return res.status(201).json({
+      message: "Group created successfully.",
+      group: {
+        group_id: newGroup.group_id,
+        name: newGroup.name,
+      },
+    });
+  } catch (err) {
+    await pgClient.query("ROLLBACK");
+    console.error("Error in /createGroup:", err);
+    return res.status(500).json({ error: "Could not create group." });
+  } finally {
+    pgClient.release();
   }
 });
 

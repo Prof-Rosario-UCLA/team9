@@ -49,3 +49,11 @@ CREATE TABLE user_likes (
     PRIMARY KEY (liked_user_id, liked_by_user_id),
     CHECK (liked_user_id <> liked_by_user_id)
 );
+
+-- Invitations
+CREATE TABLE group_invitations (
+    invite_id SERIAL PRIMARY KEY,
+    group_id INT REFERENCES groups(group_id) ON DELETE CASCADE,
+    invited_by_user_id INT REFERENCES users(user_id) ON DELETE CASCADE,
+    invited_user_id INT REFERENCES users(user_id) ON DELETE SET NULL
+);
