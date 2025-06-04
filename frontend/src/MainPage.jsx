@@ -104,10 +104,7 @@ export default function MainPage() {
 
       {/* Sidebar + Main Content */}
       <div className="flex flex-col md:flex-row h-[calc(100%-4rem)] bg-cover bg-center bg-no-repeat overflow-hidden" style={{ backgroundImage: `url(${backgroundImg})` }}>
-        {/* ↑ ADDED overflow-hidden here to contain flex grow */}
-        {/* Sidebar */}
         <div className="bg-base-100 w-full md:w-56 flex-shrink-0 flex flex-col justify-between overflow-auto">
-          {/* ↑ ADDED overflow-auto to allow scroll on small screen sidebar */}
           <ul className="flex flex-row md:flex-col flex-wrap justify-center md:justify-start items-center gap-2 md:gap-1 p-2 text-info text-xs sm:text-sm">
           <li><button onClick={() => setActivePanel('Profile')}>Profile</button></li>
           <li><button onClick={() => setActivePanel('Group')}>Group</button></li>
@@ -123,7 +120,7 @@ export default function MainPage() {
                 </div>
               </div>
               <div className="text-sm font-semibold text-base-content">{username}</div>
-              {/* ↑ text-base-content auto-adjusts with theme */}
+
             </div>
             <ThemeToggle />
           </div>

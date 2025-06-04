@@ -148,7 +148,6 @@ export default function CalendarPanel2() {
           </div>
         </div>
       )}
-
       {selectedChore && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
           <div className="bg-base-100 rounded-box p-4 w-full max-w-md text-sm text-base-content border border-info shadow-lg max-h-[90vh] overflow-auto">
@@ -157,6 +156,7 @@ export default function CalendarPanel2() {
             <p className="mb-2">Points: {selectedChore.points}</p>
             <p className="mb-2">Created: {selectedChore.created}</p>
             <p className="mb-2">Due: {selectedChore.dueDate}</p>
+
             {!selectedChore.assigned && (
               <button
                 className="btn btn-info btn-sm text-white w-full mt-4"
@@ -168,7 +168,21 @@ export default function CalendarPanel2() {
                 Claim this chore
               </button>
             )}
-            <button className="btn btn-sm w-full mt-2" onClick={() => setSelectedChore(null)}>Close</button>
+            {selectedChore.assigned && (
+              <button
+                className="btn btn-success btn-sm text-white w-full mt-2"
+                onClick={() => {
+                  alert('You marked this chore as completed (mock)');
+                  setSelectedChore(null);
+                }}
+              >
+                Mark as Completed
+              </button>
+            )}
+
+            <button className="btn btn-sm w-full mt-2" onClick={() => setSelectedChore(null)}>
+              Close
+            </button>
           </div>
         </div>
       )}

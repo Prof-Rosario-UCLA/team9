@@ -11,12 +11,18 @@ export default function ChorePanel() {
     { id: '7', title: "Feed pets", description: "Feed and check on the pets." }
   ];
 
+  const [activeTab, setActiveTab] = useState("view");
   const [unclaimedChores, setUnclaimedChores] = useState(initialChores);
   const [myChores, setMyChores] = useState([]);
   const [draggingItem, setDraggingItem] = useState(null);
   const [selectedChore, setSelectedChore] = useState(null);
   const [pageUnclaimed, setPageUnclaimed] = useState(0);
   const [pageMine, setPageMine] = useState(0);
+  const [formData, setFormData] = useState({
+    description: '',
+    due_date: '',
+    point_worth: 0
+  });
 
   const ITEMS_PER_PAGE = 3;
   const ghostRef = useRef(null);
@@ -103,20 +109,22 @@ export default function ChorePanel() {
       <div
         className={`flex-1 flex flex-col justify-between bg-base-200 rounded-box drop-zone-${type === 'unclaimed' ? 'unclaimed' : 'mine'}`}
         style={{
-          height: '320px',
-          padding: '0.75rem',
+          height: '176px',
+          minHeight: '176px',
+          maxHeight: '176px',
+          padding: '0.5rem',
           overflow: 'hidden',
         }}
       >
         <div>
-          <h2 className={`text-sm md:text-base font-bold mb-1 ${type === 'unclaimed' ? 'text-info' : 'text-success'}`}>
+          <h2 className={`text-sm font-bold mb-1 ${type === 'unclaimed' ? 'text-info' : 'text-success'}`}>
             {type === 'unclaimed' ? 'Unclaimed Chores' : 'Your Area'}
           </h2>
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-1">
             {pageItems.map(item => (
               <div
                 key={item.id}
-                className={`text-xs md:text-sm p-2 bg-base-100 rounded shadow hover:bg-base-300 ${
+                className={`text-xs p-1 bg-base-100 rounded shadow hover:bg-base-300 ${
                   draggingItem?.id === item.id ? 'opacity-50 pointer-events-none' : ''
                 }`}
                 onMouseDown={(e) => handleMouseDown(item, type, e)}
@@ -133,7 +141,7 @@ export default function ChorePanel() {
           {renderPagination(page, setPage, chores.length)}
           {type === 'mine' && chores.length > 0 && (
             <button
-              className="btn btn-success btn-xs mt-2 w-full"
+              className="btn btn-success btn-xs mt-1 w-full"
               onClick={() => alert("Claimed: " + chores.map(c => c.title).join(", "))}
             >
               Claim Chores
@@ -144,10 +152,60 @@ export default function ChorePanel() {
     );
   };
 
+  const handleCreateSubmit = (e) => {
+    e.preventDefault();
+    const newChore = {
+      id: Math.random().toString(36).slice(2),
+      title: formData.description.slice(0, 30),
+      description: formData.description,
+      due_date: formData.due_date,
+      point_worth: formData.point_worth,
+    };
+    setUnclaimedChores(prev => [...prev, newChore]);
+    setFormData({ description: '', due_date: '', point_worth: 0 });
+    setActiveTab('view');
+  };
+
   return (
-    <div className="w-full h-full flex flex-col md:flex-row p-2 md:p-4 gap-2 md:gap-4 scale-[0.93] sm:scale-100 overflow-hidden">
-      {renderList(unclaimedChores, 'unclaimed', pageUnclaimed, setPageUnclaimed)}
-      {renderList(myChores, 'mine', pageMine, setPageMine)}
+    <div className="w-full h-full p-2 md:p-4 scale-[0.93] sm:scale-100 overflow-hidden">
+      <div className="flex mb-2 gap-2">
+        <button className={`btn btn-xs ${activeTab === 'view' ? 'btn-info' : ''}`} onClick={() => setActiveTab('view')}>View</button>
+        <button className={`btn btn-xs ${activeTab === 'create' ? 'btn-info' : ''}`} onClick={() => setActiveTab('create')}>Create</button>
+      </div>
+
+      {activeTab === 'view' ? (
+        <div className="flex flex-col md:flex-row gap-2 md:gap-4">
+          {renderList(unclaimedChores, 'unclaimed', pageUnclaimed, setPageUnclaimed)}
+          {renderList(myChores, 'mine', pageMine, setPageMine)}
+        </div>
+      ) : (
+        <div className="flex items-center justify-center h-full">
+          <form onSubmit={handleCreateSubmit} className="bg-base-200 p-4 rounded-box flex flex-col gap-3 max-w-md w-full">
+            <h3 className="text-lg font-bold text-info">Create a Chore</h3>
+            <input
+              className="input input-sm input-bordered"
+              placeholder="Description"
+              value={formData.description}
+              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              required
+            />
+            <input
+              type="date"
+              className="input input-sm input-bordered"
+              value={formData.due_date}
+              onChange={(e) => setFormData({ ...formData, due_date: e.target.value })}
+            />
+            <input
+              type="number"
+              className="input input-sm input-bordered"
+              placeholder="Point Worth"
+              value={formData.point_worth}
+              onChange={(e) => setFormData({ ...formData, point_worth: parseInt(e.target.value || '0') })}
+            />
+            <button className="btn btn-info btn-sm text-white">Add Chore</button>
+          </form>
+        </div>
+      )}
 
       {selectedChore && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
