@@ -85,7 +85,7 @@ export default function MainPage() {
 
   return (
     <div className="h-screen w-screen overflow-hidden relative">
-      <div className="navbar h-12 sm:h-14 px-2 sm:px-4 bg-base-100 text-base-content shadow-md border-b border-base-300">
+      <div className={`navbar h-12 sm:h-14 px-2 sm:px-4 bg-base-100 text-base-content shadow-md border-b border-base-300 ${showTutorial ? 'pointer-events-none opacity-60' : ''}`}>
         <div className="flex-1">
           <a className="btn btn-ghost text-xl text-info">GitBlame</a>
         </div>
@@ -105,7 +105,8 @@ export default function MainPage() {
 
       {/* Sidebar + Main Content */}
       <div className="flex flex-col md:flex-row h-[calc(100%-4rem)] bg-cover bg-center bg-no-repeat overflow-hidden" style={{ backgroundImage: `url(${backgroundImg})` }}>
-        <div className="bg-base-100 w-full md:w-56 flex-shrink-0 flex flex-col justify-between overflow-auto">
+      <div className={`bg-base-100 w-full md:w-56 flex-shrink-0 flex flex-col justify-between overflow-auto ${showTutorial ? 'pointer-events-none opacity-60' : ''}`}>
+
         <ul className="flex flex-row md:flex-col flex-wrap justify-center md:justify-start items-center gap-2 md:gap-1 p-2 text-info text-xs sm:text-sm">
           <li><button onClick={() => setActivePanel('Profile')}>Profile</button></li>
           <li><button onClick={() => setActivePanel('Group')}>Group</button></li>
