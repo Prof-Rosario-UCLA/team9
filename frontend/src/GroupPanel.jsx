@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 export default function GroupPanel() {
   const [activeTab, setActiveTab] = useState("view");
   const [groupName, setGroupName] = useState("The Clean Dream Team");
+  const [newGroupName, setNewGroupName] = useState("");
   const [members, setMembers] = useState([]);
   const [currentPage, setCurrentPage] = useState(0);
   const ITEMS_PER_PAGE = 3;
@@ -20,6 +21,52 @@ export default function GroupPanel() {
 
   const totalPages = Math.ceil(members.length / ITEMS_PER_PAGE);
   const visibleMembers = members.slice(currentPage * ITEMS_PER_PAGE, (currentPage + 1) * ITEMS_PER_PAGE);
+
+    const handleCreateGroup = async () => {
+      if (!newGroupName.trim()) {
+        alert("Please enter a valid group name.");
+        return;
+    }
+
+     try {
+
+      const token = localStorage.getItem("authToken");
+      if (!token) {
+        alert("Not authenticated. Please sign in again.");
+        return;
+      }
+
+      // Send POST to /createGroup
+      const resp = await fetch("http://localhost:8080/createGroup", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ name: newGroupName.trim() }),
+      });
+
+      if (!resp.ok) {
+        // JSON error message
+        const errJson = await resp.json().catch(() => null);
+        const msg = errJson?.error || "Failed to create group.";
+        alert(msg);
+        return;
+      }
+
+      const { group } = await resp.json(); 
+
+      // Update groupName so view tab shows the new group and switch to tab
+      setGroupName(group.name);
+      setActiveTab("view");
+
+      setNewGroupName("");
+    } catch (error) {
+      console.error("Error creating group:", error);
+      alert("An unexpected error occurred. Please try again.");
+    }
+  };
+
 
   const renderContent = () => {
     switch (activeTab) {
@@ -83,8 +130,18 @@ export default function GroupPanel() {
         return (
           <div className="flex flex-col gap-4">
             <h2 className="text-info font-bold text-lg sm:text-xl text-center">Create a New Group</h2>
-            <input type="text" placeholder="Group name..." className="input input-bordered w-full" />
-            <button className="btn btn-success">Create Group</button>
+            <input
+            type="text" 
+            placeholder="Group name..." 
+            className="input input-bordered w-full" 
+            value={newGroupName}
+            onChange={(e) => setNewGroupName(e.target.value)}
+            />
+
+            <button 
+            className="btn btn-success"
+            onClick={handleCreateGroup}
+            >Create Group</button>
           </div>
         );
       default:
