@@ -4,6 +4,7 @@ export default function GroupPanel() {
   const [activeTab, setActiveTab] = useState("view");
   const [groupName, setGroupName] = useState("The Clean Dream Team");
   const [newGroupName, setNewGroupName] = useState("");
+  const [invitedEmail, setInvitedEmail] = useState("");
   const [members, setMembers] = useState([]);
   const [currentPage, setCurrentPage] = useState(0);
   const ITEMS_PER_PAGE = 3;
@@ -22,6 +23,7 @@ export default function GroupPanel() {
   const totalPages = Math.ceil(members.length / ITEMS_PER_PAGE);
   const visibleMembers = members.slice(currentPage * ITEMS_PER_PAGE, (currentPage + 1) * ITEMS_PER_PAGE);
 
+    // Handles create group request
     const handleCreateGroup = async () => {
       if (!newGroupName.trim()) {
         alert("Please enter a valid group name.");
@@ -63,6 +65,47 @@ export default function GroupPanel() {
       setNewGroupName("");
     } catch (error) {
       console.error("Error creating group:", error);
+      alert("An unexpected error occurred. Please try again.");
+    }
+  };
+
+    // Handles invite request
+    const handleInvite = async () => {
+    if (!invitedEmail.trim()) {
+      alert("Please enter an email to invite.");
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem("authToken");
+      if (!token) {
+        alert("Not authenticated. Please sign in again.");
+        return;
+      }
+
+      // Send POST to /inviteUser
+      const resp = await fetch("http://localhost:8080/inviteUser", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ invited_user_email: invitedEmail.trim() }),
+      });
+
+      if (!resp.ok) {
+        // JSON error message
+        const errJson = await resp.json().catch(() => null);
+        const msg = errJson?.error || "Failed to send invitation.";
+        alert(msg);
+        return;
+      }
+
+      const { invite_id } = await resp.json();
+      alert(`Invitation sent successfully! (ID: ${invite_id})`);
+      setInvitedEmail("");
+    } catch (error) {
+      console.error("Error sending invite:", error);
       alert("An unexpected error occurred. Please try again.");
     }
   };
@@ -122,8 +165,14 @@ export default function GroupPanel() {
         return (
           <div className="flex flex-col gap-4">
             <h2 className="text-info font-bold text-lg sm:text-xl text-center">Invite Members</h2>
-            <input type="email" placeholder="Enter email..." className="input input-bordered w-full" />
-            <button className="btn btn-info">Send Invite</button>
+            <input
+            type="email" 
+            placeholder="Enter email..." 
+            className="input input-bordered w-full" 
+            value={invitedEmail}
+            onChange={(e) => setInvitedEmail(e.target.value)}
+            />
+            <button className="btn btn-info" onClick={handleInvite}>Send Invite</button>
           </div>
         );
       case "create":

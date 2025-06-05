@@ -375,3 +375,104 @@ app.post("/createGroup", authenticateToken, async (req, res) => {
   }
 });
 
+/* Invite User API */
+app.post("/inviteUser", authenticateToken, async (req, res) => {
+  const invitedBy = req.user.userId;
+  const { invited_user_email } = req.body;
+
+  if (typeof invited_user_email !== "string" || !invited_user_email.trim()) {
+    return res.status(400).json({
+      error: "Please provide a non-empty invited_user_email in the request body.",
+    });
+  }
+  const email = invited_user_email.trim().toLowerCase();
+
+  try {
+    // Find the group owned by this inviter
+    const { rows: ownedGroups } = await pool.query(
+      `SELECT group_id
+         FROM groups
+         WHERE owner_user_id = $1`,
+      [invitedBy]
+    );
+
+    if (ownedGroups.length === 0) {
+      return res
+        .status(400)
+        .json({ error: "You do not own any group to send invitations from." });
+    }
+
+    const group_id = ownedGroups[0].group_id;
+
+    // Look up the invited user’s ID by email
+    const {
+      rows: [userRow],
+    } = await pool.query(
+      `SELECT user_id
+         FROM users
+         WHERE LOWER(email) = $1`,
+      [email]
+    );
+    if (!userRow) {
+      return res.status(404).json({
+        error: "No user found with the provided email.",
+      });
+    }
+    const invitedUserId = userRow.user_id;
+
+    // Check that invited user is not already in the group
+    const {
+      rows: [alreadyMember],
+    } = await pool.query(
+      `SELECT 1
+         FROM profiles
+         WHERE user_id = $1
+           AND group_id = $2`,
+      [invitedUserId, group_id]
+    );
+    if (alreadyMember) {
+      return res.status(400).json({
+        error: "That user is already a member of your group.",
+      });
+    }
+
+    // Check that there isn’t already an invitation (to prevent duplication)
+    const {
+      rows: [existingInvite],
+    } = await pool.query(
+      `SELECT 1
+         FROM group_invitations
+         WHERE group_id = $1
+           AND invited_user_id = $2`,
+      [group_id, invitedUserId]
+    );
+    if (existingInvite) {
+      return res.status(400).json({
+        error: "An invitation has already been sent to that user for your group.",
+      });
+    }
+
+    // Insert the invitation
+    const {
+      rows: [newInvite],
+    } = await pool.query(
+      `
+      INSERT INTO group_invitations (
+        group_id,
+        invited_by_user_id,
+        invited_user_id
+      ) VALUES ($1, $2, $3)
+      RETURNING invite_id
+      `,
+      [group_id, invitedBy, invitedUserId]
+    );
+
+    return res.status(201).json({
+      message: "Invitation sent successfully.",
+      invite_id: newInvite.invite_id,
+    });
+  } catch (err) {
+    console.error("Error in /inviteUser:", err);
+    return res.status(500).json({ error: "Server error." });
+  }
+});
