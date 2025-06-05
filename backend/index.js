@@ -27,6 +27,10 @@ app.listen(port, () => {
   console.log("server has started on port", port)
 })
 
+app.get("/ping", (req, res) => {
+  res.status(200).send("pong");
+});
+
 /* Authenticate the session token created during registration or login */
 function authenticateToken(req, res, next) {
 const authHeader = req.headers['authorization']

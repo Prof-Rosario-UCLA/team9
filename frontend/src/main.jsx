@@ -10,19 +10,21 @@ import MainPage from './MainPage.jsx';
 import SetupPage from './SetupPage';
 import ProtectedRoute from './ProtectedRoute.jsx';
 import LeaderBoard from './LeaderBoard';
-
+import GlobalOfflineWrapper from './GlobalOfflineWrapper';
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<LandingPage />} />
-        <Route path="/signup" element={<SignUp />} />
-        <Route path="/signin" element={<SignIn />} />
-        <Route path="/leaderboard" element={<LeaderBoard />} />
-        <Route path="/main" element={<ProtectedRoute><MainPage /></ProtectedRoute>} />
-        <Route path="/setup" element={<ProtectedRoute><SetupPage /></ProtectedRoute>} />
-      </Routes>
+      <GlobalOfflineWrapper>
+        <Routes>
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/signup" element={<SignUp />} />
+          <Route path="/signin" element={<SignIn />} />
+          <Route path="/leaderboard" element={<LeaderBoard />} />
+          <Route path="/main" element={<ProtectedRoute><MainPage /></ProtectedRoute>} />
+          <Route path="/setup" element={<ProtectedRoute><SetupPage /></ProtectedRoute>} />
+        </Routes>
+      </GlobalOfflineWrapper>
     </BrowserRouter>
   </StrictMode>
 );
