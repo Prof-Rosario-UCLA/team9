@@ -8,10 +8,10 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
 
-      // ✅ Enable service worker in development
+      // Enable service worker during development
       devOptions: {
         enabled: true,
-        type: 'module', // or 'classic' depending on your SW script
+        type: 'module',
         navigateFallback: '/',
       },
 
@@ -46,6 +46,7 @@ export default defineConfig({
       workbox: {
         runtimeCaching: [
           {
+            // Cache HTML pages (including your React entry point)
             urlPattern: ({ request }) => request.destination === 'document',
             handler: 'NetworkFirst',
             options: {
@@ -53,6 +54,7 @@ export default defineConfig({
             },
           },
           {
+            // Cache JS, CSS, and worker files
             urlPattern: ({ request }) =>
               request.destination === 'style' ||
               request.destination === 'script' ||
@@ -60,6 +62,18 @@ export default defineConfig({
             handler: 'StaleWhileRevalidate',
             options: {
               cacheName: 'asset-cache',
+            },
+          },
+          {
+            // Cache images (optional but recommended)
+            urlPattern: ({ request }) => request.destination === 'image',
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'image-cache',
+              expiration: {
+                maxEntries: 50,
+                maxAgeSeconds: 30 * 24 * 60 * 60, // 30 days
+              },
             },
           },
         ],
