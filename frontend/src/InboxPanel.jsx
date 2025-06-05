@@ -6,12 +6,36 @@ export default function InboxPanel() {
   const ITEMS_PER_PAGE = 5;
 
   useEffect(() => {
-    // Sample data — replace with real fetch later
-    const sampleNotices = Array.from({ length: 23 }, (_, i) => ({
-      group: `Group ${i + 1}`,
-    }));
-    setNotices(sampleNotices);
-  }, []);
+    const fetchInvitations = async () => {
+      const token = localStorage.getItem("authToken");
+      if (!token) {
+        console.warn("No auth token found—cannot load invitations. Please log in again.");
+        return;
+      }
+
+      try {
+        const resp = await fetch("http://localhost:8080/getInvitations", {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (!resp.ok) {
+          console.error("Failed to fetch invitations:", resp.status);
+          return;
+        }
+
+        const data = await resp.json();
+        setNotices(data.invitations || []);
+      } catch (err) {
+        console.error("Error while fetching invitations:", err);
+      }
+    };
+
+    fetchInvitations();
+  }, []); 
 
   const totalPages = Math.ceil(notices.length / ITEMS_PER_PAGE);
   const currentNotices = notices.slice(
@@ -25,9 +49,14 @@ export default function InboxPanel() {
 
       <ul className="space-y-3">
         {currentNotices.map((notice, idx) => (
-          <li key={idx} className="flex justify-between items-center border-b border-base-300 pb-2">
+          <li 
+          key={notice.invite_id} 
+          className="flex justify-between items-center border-b border-base-300 pb-2"
+          >
             <div className="text-sm sm:text-base">
-              You've been invited by <span className="font-semibold">{notice.group}</span>
+              You’ve been invited to{" "}
+              <span className="font-semibold">{notice.group_name}</span> by{" "}
+              <span className="font-semibold">{notice.invited_by_name}</span>
             </div>
             <button className="btn btn-sm btn-outline btn-info">Accept</button>
           </li>

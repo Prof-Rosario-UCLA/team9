@@ -467,12 +467,70 @@ app.post("/inviteUser", authenticateToken, async (req, res) => {
       [group_id, invitedBy, invitedUserId]
     );
 
+    await client.del(`invitations:${invitedUserId}`);
+
     return res.status(201).json({
       message: "Invitation sent successfully.",
       invite_id: newInvite.invite_id,
     });
   } catch (err) {
     console.error("Error in /inviteUser:", err);
+    return res.status(500).json({ error: "Server error." });
+  }
+});
+
+/* Retrieves Group Invitations of Current User */
+app.get("/getInvitations", authenticateToken, async (req, res) => {
+  const userId = req.user.userId;
+  const cacheKey = `invitations:${userId}`;
+
+  try {
+    const cached = await client.get(cacheKey);
+    if (cached) {
+      // Cache hit
+      const parsed = JSON.parse(cached);
+      return res.status(200).json({ invitations: parsed });
+    }
+
+    // Query for all invitations where this user is the invitee
+    const { rows: invitations } = await pool.query(
+      `
+      SELECT
+        gi.invite_id,
+        gi.group_id,
+        g.name AS group_name,
+        gi.invited_by_user_id,
+        inviter.user_name  AS invited_by_name,
+        inviter.email      AS invited_by_email
+      FROM group_invitations gi
+      JOIN groups g
+        ON gi.group_id = g.group_id
+      JOIN users inviter
+        ON gi.invited_by_user_id = inviter.user_id
+      WHERE gi.invited_user_id = $1
+      ORDER BY gi.invite_id DESC
+      `,
+      [userId]
+    );
+
+    // Array of invitation objects
+    const result = invitations.map((inv) => ({
+      invite_id:         inv.invite_id,
+      group_id:          inv.group_id,
+      group_name:        inv.group_name,
+      invited_by_user_id:  inv.invited_by_user_id,
+      invited_by_name:   inv.invited_by_name,
+      invited_by_email:  inv.invited_by_email
+    }));
+
+    await client.set(cacheKey, JSON.stringify(result), {
+      EX: 300
+    });
+
+    // Return the array or empty if there is no invitations found
+    return res.status(200).json({ invitations: result });
+  } catch (err) {
+    console.error("Error in /getInvitations:", err);
     return res.status(500).json({ error: "Server error." });
   }
 });
