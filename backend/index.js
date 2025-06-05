@@ -534,3 +534,70 @@ app.get("/getInvitations", authenticateToken, async (req, res) => {
     return res.status(500).json({ error: "Server error." });
   }
 });
+
+/* Accepts Group Invitation */
+app.post("/acceptInvite", authenticateToken, async (req, res) => {
+  const userId = req.user.userId;
+  const { group_id } = req.body;
+
+  if (typeof group_id !== "number") {
+    return res.status(400).json({ error: "Missing or invalid group_id in request body." });
+  }
+
+  // Get a client for transaction
+  const pgClient = await pool.connect();
+  try {
+    await pgClient.query("BEGIN");
+
+    // Ensures invite is actually there
+    const { rows: inviteRows } = await pgClient.query(
+      `
+      SELECT 1
+      FROM group_invitations
+      WHERE invited_user_id = $1
+        AND group_id = $2
+      `,
+      [userId, group_id]
+    );
+    if (inviteRows.length === 0) {
+      await pgClient.query("ROLLBACK");
+      return res.status(400).json({ error: "No pending invitation found for that group." });
+    }
+
+    // Delete all invitations for this user
+    await pgClient.query(
+      `
+      DELETE FROM group_invitations
+      WHERE invited_user_id = $1
+      `,
+      [userId]
+    );
+
+    // Insert into profiles to signify the user joined the group
+    await pgClient.query(
+      `
+      INSERT INTO profiles (user_id, group_id)
+      VALUES ($1, $2)
+      `,
+      [userId, group_id]
+    );
+
+    await pgClient.query("COMMIT");
+
+    await client.del(`invitations:${userId}`);
+
+    return res.status(200).json({ message: "Invitation accepted. You have joined the group." });
+  } catch (err) {
+    await pgClient.query("ROLLBACK");
+
+    if (err.code === "23505") {
+      // UNIQUE violation
+      return res.status(400).json({ error: "You are already a member of that group." });
+    }
+
+    console.error("Error in /acceptInvite:", err);
+    return res.status(500).json({ error: "Server error." });
+  } finally {
+    pgClient.release();
+  }
+});
