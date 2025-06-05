@@ -589,6 +589,7 @@ app.post("/acceptInvite", authenticateToken, async (req, res) => {
     await pgClient.query("COMMIT");
 
     await client.del(`invitations:${userId}`);
+    await client.del(`groupMembers:${group_id}`);
 
     return res.status(200).json({ message: "Invitation accepted. You have joined the group." });
   } catch (err) {
@@ -603,5 +604,160 @@ app.post("/acceptInvite", authenticateToken, async (req, res) => {
     return res.status(500).json({ error: "Server error." });
   } finally {
     pgClient.release();
+  }
+});
+
+/* Retrieve All Group Members of the Group the User's in */
+app.get("/getGroupMembers", authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.userId;
+
+    // Find the group_id through the authToken
+    const { rows: profileRows } = await pool.query(
+      `SELECT group_id
+         FROM profiles
+         WHERE user_id = $1`,
+      [userId]
+    );
+
+    if (profileRows.length === 0) {
+      // If not in a group
+      return res.status(200).json({ inGroup: false });
+    }
+
+    const groupId = profileRows[0].group_id;
+    const cacheKey = `groupMembers:${groupId}`;
+
+    const cached = await client.get(cacheKey);
+    if (cached) {
+      // Cache hit
+      const members = JSON.parse(cached);
+      return res.status(200).json({ inGroup: true, members });
+    }
+
+    // Fetch all members of that group
+    const { rows: memberRows } = await pool.query(
+      `
+      SELECT
+        u.user_id,
+        u.user_name,
+        u.email,
+        u.bio,
+        u.contact_info,
+        u.pfp,
+        u.pfp_mime,
+        p.points
+      FROM profiles p
+      JOIN users u
+        ON p.user_id = u.user_id
+      WHERE p.group_id = $1
+      `,
+      [groupId]
+    );
+
+    // Serialize each member
+    const members = memberRows.map((m) => {
+      let pfpBase64 = null;
+      if (m.pfp) {
+        pfpBase64 = m.pfp.toString("base64");
+      }
+      return {
+        user_id:      m.user_id,
+        user_name:    m.user_name,
+        email:        m.email,
+        bio:          m.bio,
+        contact_info: m.contact_info,
+        pfp:          pfpBase64,
+        pfp_mime:     m.pfp_mime,
+        points:       m.points
+      };
+    });
+
+    await client.set(cacheKey, JSON.stringify(members), {
+      EX: 300
+    });
+
+    // Return array of members
+    return res.status(200).json({
+      inGroup: true,
+      members
+    });
+  } catch (err) {
+    console.error("Error in /getGroupMembers:", err);
+    return res.status(500).json({ error: "Server error." });
+  }
+});
+
+/* Leave Group API */
+app.post("/leaveGroup", authenticateToken, async (req, res) => {
+  const userId = req.user.userId;
+  const client = await pool.connect();
+
+  try {
+    await client.query("BEGIN");
+
+    // Find the group_id that this user belongs to
+    const {
+      rows: [profileRow],
+    } = await client.query(
+      `SELECT group_id
+         FROM profiles
+         WHERE user_id = $1`,
+      [userId]
+    );
+
+    if (!profileRow) {
+      await client.query("ROLLBACK");
+      return res.status(400).json({ error: "You are not in a group." });
+    }
+
+    const groupId = profileRow.group_id;
+
+    // Check if the user is the owner of that group
+    const {
+      rows: [groupRow],
+    } = await client.query(
+      `SELECT owner_user_id
+         FROM groups
+         WHERE group_id = $1`,
+      [groupId]
+    );
+
+    const isOwner = groupRow.owner_user_id === userId;
+
+    if (isOwner) {
+      // If owner, delete the group itself
+      await client.query(
+        `DELETE FROM groups
+           WHERE group_id = $1`,
+        [groupId]
+      );
+    } else {
+      // If not owner, simply remove the profile row, which signifies a leave group.
+      await client.query(
+        `DELETE FROM profiles
+           WHERE user_id = $1
+             AND group_id = $2`,
+        [userId, groupId]
+      );
+    }
+
+    await client.query("COMMIT");
+
+    if (isOwner) {
+      return res
+        .status(200)
+        .json({ message: "You left and deleted the group successfully." });
+    } else {
+      return res
+        .status(200)
+        .json({ message: "You have left the group successfully." });
+    }
+  } catch (err) {
+    await client.query("ROLLBACK");
+    console.error("Error in /leaveGroup:", err);
+    return res.status(500).json({ error: "Server error." });
+  } finally {
+    client.release();
   }
 });

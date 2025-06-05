@@ -9,19 +9,97 @@ export default function GroupPanel() {
   const [currentPage, setCurrentPage] = useState(0);
   const ITEMS_PER_PAGE = 3;
 
+  // Handle getting group members
   useEffect(() => {
-    setMembers([
-      { name: "Alice", email: "alice@example.com", avatar: "https://img.daisyui.com/images/profile/demo/1@94.webp" },
-      { name: "Bob", email: "bob@example.com", avatar: "https://img.daisyui.com/images/profile/demo/2@94.webp" },
-      { name: "Charlie", email: "charlie@example.com", avatar: "https://img.daisyui.com/images/profile/demo/3@94.webp" },
-      { name: "Diana", email: "diana@example.com", avatar: "https://img.daisyui.com/images/profile/demo/4@94.webp" },
-      { name: "Eve", email: "eve@example.com", avatar: "https://img.daisyui.com/images/profile/demo/5@94.webp" },
-      { name: "Frank", email: "frank@example.com", avatar: "https://img.daisyui.com/images/profile/demo/6@94.webp" },
-    ]);
-  }, []);
+    if (activeTab !== "view") return;
 
-  const totalPages = Math.ceil(members.length / ITEMS_PER_PAGE);
-  const visibleMembers = members.slice(currentPage * ITEMS_PER_PAGE, (currentPage + 1) * ITEMS_PER_PAGE);
+    const fetchMembers = async () => {
+      const token = localStorage.getItem("authToken");
+      if (!token) {
+        console.warn("No auth token found—cannot load group members.");
+        setMembers([]);
+        return;
+      }
+
+      try {
+        const resp = await fetch("http://localhost:8080/getGroupMembers", {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (!resp.ok) {
+          console.error("Failed to fetch group members:", resp.status);
+          setMembers([]);
+          return;
+        }
+
+        const data = await resp.json();
+        // If user is not in a group, we get
+        if (!data.inGroup) {
+          setMembers([]); 
+          return;
+        }
+
+        const mapped = data.members.map((m) => {
+          let avatar = "";
+          if (m.pfp && m.pfp_mime) {
+            avatar = `data:${m.pfp_mime};base64,${m.pfp}`;
+          }
+          return {
+            name: m.user_name,
+            email: m.email,
+            avatar, 
+            points: m.points,
+          };
+        });
+
+        setMembers(mapped);
+        setCurrentPage(0);
+      } catch (err) {
+        console.error("Error while fetching group members:", err);
+        setMembers([]);
+      }
+    };
+
+    fetchMembers();
+  }, [activeTab]);
+
+    // Handle leaving group
+    const handleLeaveGroup = async () => {
+    const token = localStorage.getItem("authToken");
+    if (!token) {
+      alert("Not authenticated. Please log in again.");
+      return;
+    }
+
+    try {
+      const resp = await fetch("http://localhost:8080/leaveGroup", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!resp.ok) {
+        const errJson = await resp.json().catch(() => null);
+        const msg = errJson?.error || "Failed to leave group.";
+        alert(msg);
+        return;
+      }
+
+      // Clear group name and members
+      setMembers([]);
+      setGroupName("");
+      alert("You have left the group.");
+    } catch (err) {
+      console.error("Error while leaving group:", err);
+      alert("An unexpected error occurred. Please try again.");
+    }
+  };
 
     // Handles create group request
     const handleCreateGroup = async () => {
@@ -110,6 +188,8 @@ export default function GroupPanel() {
     }
   };
 
+  const totalPages = Math.ceil(members.length / ITEMS_PER_PAGE);
+  const visibleMembers = members.slice(currentPage * ITEMS_PER_PAGE, (currentPage + 1) * ITEMS_PER_PAGE);
 
   const renderContent = () => {
     switch (activeTab) {
@@ -150,7 +230,10 @@ export default function GroupPanel() {
               </div>
             )}
 
-            <button className="btn btn-error btn-sm w-full">Leave Group</button>
+            <button 
+            className="btn btn-error btn-sm w-full"
+            onClick={handleLeaveGroup}
+            >Leave Group</button>
           </>
         );
       case "join":
