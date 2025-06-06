@@ -151,18 +151,67 @@ export default function ChorePanel() {
     );
   };
 
-  const handleCreateSubmit = (e) => {
+  const handleCreateSubmit = async (e) => {
     e.preventDefault();
-    const newChore = {
-      id: Math.random().toString(36).slice(2),
-      title: formData.description.slice(0, 30),
-      description: formData.description,
-      due_date: formData.due_date,
-      point_worth: formData.point_worth,
+
+    // Validation
+    if (!formData.description.trim()) {
+      alert("Please enter a description.");
+      return;
+    }
+
+    const token = localStorage.getItem("authToken");
+    if (!token) {
+      alert("Not authenticated. Please sign in again.");
+      return;
+    }
+
+    // Prepare payload
+    const payload = {
+      description: formData.description.trim(),
+      // convert to ISO string
+      due_date: formData.due_date ? new Date(formData.due_date).toISOString() : undefined,
+      point_worth: formData.point_worth
     };
-    setUnclaimedChores(prev => [...prev, newChore]);
-    setFormData({ description: '', due_date: '', point_worth: 0 });
-    setActiveTab('view');
+
+    try {
+      const resp = await fetch("http://localhost:8080/createTask", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await resp.json();
+      if (!resp.ok) {
+        // if user not in group
+        if (data.inGroup === false) {
+          alert("You are not in a group. Create or join a group first.");
+        } else {
+          alert(data.error || "Failed to create chore.");
+        }
+        return;
+      }
+
+      // On success, data.task contains the new task
+      const newTask = data.task;
+      const newChore = {
+        id: newTask.task_id.toString(),
+        title: newTask.description.slice(0, 30),
+        description: newTask.description,
+        due_date: newTask.due_date,
+        point_worth: newTask.point_worth
+      };
+
+      setUnclaimedChores(prev => [...prev, newChore]);
+      setFormData({ description: '', due_date: '', point_worth: 0 });
+      setActiveTab('view');
+    } catch (err) {
+      console.error("Error creating chore:", err);
+      alert("An unexpected error occurred. Please try again.");
+    }
   };
 
   return (

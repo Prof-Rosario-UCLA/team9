@@ -33,7 +33,7 @@ CREATE TABLE tasks (
     task_id SERIAL PRIMARY KEY,
     group_id INT REFERENCES groups(group_id) ON DELETE CASCADE,
     description TEXT NOT NULL,
-    due_date DATE,
+    due_date TIMESTAMPTZ,
     point_worth INT DEFAULT 0,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     claimed_by INT REFERENCES profiles(profile_id) ON DELETE SET NULL,

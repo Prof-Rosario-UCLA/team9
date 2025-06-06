@@ -761,3 +761,77 @@ app.post("/leaveGroup", authenticateToken, async (req, res) => {
     client.release();
   }
 });
+
+/* Create Chore API */
+app.post("/createTask", authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    // Find which group this user is in
+    const {
+      rows: profileRows,
+    } = await pool.query(
+      `SELECT group_id
+         FROM profiles
+         WHERE user_id = $1`,
+      [userId]
+    );
+    
+    // If not in group
+    if (profileRows.length === 0) {
+      return res.status(200).json({ inGroup: false });
+    }
+
+    const groupId = profileRows[0].group_id;
+
+    // Extract and validate input from body
+    const { description, due_date, point_worth } = req.body;
+
+    if (!description || typeof description !== "string" || !description.trim()) {
+      return res
+        .status(400)
+        .json({ error: "description is required and must be a non-empty string." });
+    }
+
+    // due_date
+    if (due_date) {
+      const parsed = new Date(due_date);
+      if (Number.isNaN(parsed.getTime())) {
+        return res
+          .status(400)
+          .json({ error: "Form not fully filled out" });
+      }
+      dueDateValue = parsed.toISOString(); 
+    }
+
+    // point_worth
+    if (point_worth !== undefined) {
+      const pv = Number(point_worth);
+      if (Number.isNaN(pv) || !Number.isInteger(pv) || pv < 0) {
+        return res
+          .status(400)
+          .json({ error: "Points must be a non-negative integer" });
+      }
+      pointsValue = pv;
+    }
+
+    const insertQuery = `
+      INSERT INTO tasks (group_id, description, due_date, point_worth)
+      VALUES ($1, $2, $3, $4)
+      RETURNING task_id, group_id, description, due_date, point_worth, created_at, is_completed
+    `;
+    const insertValues = [groupId, description.trim(), dueDateValue, pointsValue];
+
+    const {
+      rows: [newTask],
+    } = await pool.query(insertQuery, insertValues);
+
+    return res.status(201).json({
+      message: "Task created successfully",
+      task: newTask,
+    });
+  } catch (err) {
+    console.error("Error in /createTask:", err);
+    return res.status(500).json({ error: "Server error." });
+  }
+});
+
