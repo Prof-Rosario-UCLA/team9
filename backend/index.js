@@ -278,6 +278,16 @@ app.get("/getMyGroupTasks", authenticateToken, async (req, res) => {
     }
 
     const { group_id, group_name } = profileRows[0];
+    const cacheKey = `myGroupTasks:${group_id}`;
+
+    const cached = await client.get(cacheKey);
+    if (cached) {
+      const tasks = JSON.parse(cached);
+      return res.status(200).json({
+        inGroup: true,
+        group: { group_id, group_name, tasks }
+      });
+    }
 
     // Fetch tasks
     const { rows: taskRows } = await pool.query(
@@ -303,14 +313,16 @@ app.get("/getMyGroupTasks", authenticateToken, async (req, res) => {
     const tasks = taskRows.map((t) => ({
       task_id:      t.task_id,
       description:  t.description,
-      due_date:     t.due_date,         // “YYYY‐MM‐DD” (string) or null
+      due_date:     t.due_date,
       point_worth:  t.point_worth,
-      created_at:   t.created_at,       // JS Date auto‐serialized to ISO
-      claimed_by:   t.claimed_by,       // user_id of the claimer, or null if not claimed
-      claimed_at:   t.claimed_at,       // JS Date or null if not claimed
-      completed_at: t.completed_at,     // JS Date or null if not completed
-      is_completed: t.is_completed      // boolean
+      created_at:   t.created_at,
+      claimed_by:   t.claimed_by,
+      claimed_at:   t.claimed_at,
+      completed_at: t.completed_at,
+      is_completed: t.is_completed
     }));
+
+    await client.set(cacheKey, JSON.stringify(tasks), { EX: 300 });
 
     return res.status(200).json({
       inGroup: true,
@@ -743,6 +755,7 @@ app.post("/leaveGroup", authenticateToken, async (req, res) => {
     }
 
     await client.query("COMMIT");
+    await client.del(`myGroupTasks:${groupId}`);
 
     if (isOwner) {
       return res
@@ -825,6 +838,8 @@ app.post("/createTask", authenticateToken, async (req, res) => {
       rows: [newTask],
     } = await pool.query(insertQuery, insertValues);
 
+    await client.del(`myGroupTasks:${groupId}`);
+
     return res.status(201).json({
       message: "Task created successfully",
       task: newTask,
@@ -834,4 +849,3 @@ app.post("/createTask", authenticateToken, async (req, res) => {
     return res.status(500).json({ error: "Server error." });
   }
 });
-
