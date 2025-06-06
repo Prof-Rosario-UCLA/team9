@@ -1,15 +1,7 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 
 export default function ChorePanel() {
-  const initialChores = [
-    { id: '1', title: "Do the dishes", description: "Wash all plates and utensils." },
-    { id: '2', title: "Vacuum living room", description: "Vacuum the carpet and under furniture." },
-    { id: '3', title: "Take out trash", description: "Take garbage to the bins outside." },
-    { id: '4', title: "Clean bathroom", description: "Wipe down surfaces and mop the floor." },
-    { id: '5', title: "Laundry", description: "Wash, dry, and fold clothes." },
-    { id: '6', title: "Mow the lawn", description: "Cut the grass in the backyard." },
-    { id: '7', title: "Feed pets", description: "Feed and check on the pets." }
-  ];
+  const initialChores = [];
 
   const [activeTab, setActiveTab] = useState("view");
   const [unclaimedChores, setUnclaimedChores] = useState(initialChores);
@@ -26,6 +18,59 @@ export default function ChorePanel() {
 
   const ITEMS_PER_PAGE = 3;
   const ghostRef = useRef(null);
+
+  useEffect(() => {
+    if (activeTab !== 'view') return;
+
+    const fetchTasks = async () => {
+      const token = localStorage.getItem('authToken');
+      if (!token) {
+        console.warn('No auth token found—cannot load chores.');
+        setUnclaimedChores([]);
+        setMyChores([]);
+        return;
+      }
+
+      try {
+        const resp = await fetch('http://localhost:8080/getMyGroupTasks', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        const data = await resp.json();
+        if (!resp.ok || data.inGroup === false) {
+          setUnclaimedChores([]);
+          setMyChores([]);
+          return;
+        }
+
+        const tasks = data.group.tasks;
+        // unclaimed
+        const unclaimed = tasks
+          .filter(t => t.claimed_by === null && !t.is_completed)
+          .map(t => ({
+            id: t.task_id.toString(),
+            title: t.description.slice(0, 30),
+            description: t.description,
+            due_date: t.due_date,
+            point_worth: t.point_worth
+          }));
+
+        setUnclaimedChores(unclaimed);
+        setPageUnclaimed(0);
+        setPageMine(0);
+      } catch (err) {
+        console.error('Error fetching chores:', err);
+        setUnclaimedChores([]);
+        setMyChores([]);
+      }
+    };
+
+    fetchTasks();
+  }, [activeTab]);
 
   const handleMouseDown = (chore, source, e) => {
     e.preventDefault();
@@ -182,7 +227,7 @@ export default function ChorePanel() {
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(payload),
-      });
+      }); 
 
       const data = await resp.json();
       if (!resp.ok) {
