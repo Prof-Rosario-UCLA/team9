@@ -168,13 +168,25 @@ export default function CalendarPanel2() {
           const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
           const chores = getChoresForDate(dateStr);
           const hasChores = chores.length > 0;
+          const isPast = new Date(dateStr) < new Date();
+          const hasIncomplete = chores.some(c => !c.completed);
+          const allCompleted = chores.length > 0 && chores.every(c => c.completed);
+
+          let borderColor = 'border-base-300';
+          if (allCompleted) {
+            borderColor = 'border-green-500';
+          } else if (isPast && hasIncomplete) {
+            borderColor = 'border-red-500';
+          } else if (hasChores) {
+            borderColor = 'border-purple-500';
+          }
 
           return (
             <div
               key={day}
               className={`p-1 sm:p-2 rounded text-[9px] sm:text-[11px] leading-tight flex flex-col items-start justify-start overflow-hidden
                 bg-base-100 text-base-content border-2 transition-colors duration-150
-                ${hasChores ? 'border-purple-500' : 'border-base-300'} hover:border-purple-400`}
+                ${borderColor} hover:border-purple-400`}
               onClick={() => openDatePopup(dateStr)}
               style={{
                 width: '90%',
