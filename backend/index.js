@@ -849,3 +849,61 @@ app.post("/createTask", authenticateToken, async (req, res) => {
     return res.status(500).json({ error: "Server error." });
   }
 });
+
+/* Claim Chores API */
+app.post("/claimTasks", authenticateToken, async (req, res) => {
+  const userId = req.user.userId;
+  const { task_ids } = req.body;
+
+  // Validate input
+  if (
+    !Array.isArray(task_ids) ||
+    task_ids.length === 0 ||
+    !task_ids.every((id) => Number.isInteger(id) && id > 0)
+  ) {
+    return res
+      .status(400)
+      .json({ error: "task_ids must be a non-empty array of positive integers." });
+  }
+
+  try {
+    // Get user_id for claimed_by
+    const {
+      rows: [profileRow],
+    } = await pool.query(
+      `SELECT profile_id, group_id
+         FROM profiles
+         WHERE user_id = $1`,
+      [userId]
+    );
+
+    if (!profileRow) {
+      // if not in a group
+      return res.status(200).json({ inGroup: false });
+    }
+    const profileId = profileRow.profile_id;
+    const groupId = profileRow.group_id;
+
+    // Update row
+    const { rowCount } = await pool.query(
+      `
+      UPDATE tasks
+      SET claimed_by = $1,
+          claimed_at = NOW()
+      WHERE task_id = ANY($2::int[])
+      `,
+      [profileId, task_ids]
+    );
+
+    await client.del(`myGroupTasks:${groupId}`);
+
+    // Return how many were updated
+    return res.status(200).json({
+      claimedCount: rowCount,
+      claimed_task_ids: task_ids
+    });
+  } catch (err) {
+    console.error("Error in /claimTasks:", err);
+    return res.status(500).json({ error: "Server error." });
+  }
+});

@@ -61,7 +61,6 @@ export default function ChorePanel() {
 
         setUnclaimedChores(unclaimed);
         setPageUnclaimed(0);
-        setPageMine(0);
       } catch (err) {
         console.error('Error fetching chores:', err);
         setUnclaimedChores([]);
@@ -186,7 +185,7 @@ export default function ChorePanel() {
           {type === 'mine' && chores.length > 0 && (
             <button
               className="btn btn-success btn-xs mt-1 w-full"
-              onClick={() => alert("Claimed: " + chores.map(c => c.title).join(", "))}
+              onClick={handleClaimPage}
             >
               Claim Chores
             </button>
@@ -194,6 +193,49 @@ export default function ChorePanel() {
         </footer>
       </section>
     );
+  };
+
+  const handleClaimPage = async () => {
+    const token = localStorage.getItem('authToken');
+    if (!token) {
+      alert('Not authenticated. Please log in again.');
+      return;
+    }
+
+    // determine which chores are on the current page
+    const start = pageMine * ITEMS_PER_PAGE;
+    const pageItems = myChores.slice(start, start + ITEMS_PER_PAGE);
+    if (pageItems.length === 0) {
+      alert('No chores to claim on this page.');
+      return;
+    }
+    const taskIds = pageItems.map(c => parseInt(c.id, 10));
+
+    try {
+      const resp = await fetch('http://localhost:8080/claimTasks', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ task_ids: taskIds }),
+      });
+      const data = await resp.json();
+      if (!resp.ok) {
+        if (data.inGroup === false) {
+          alert('You are not in a group.');
+        } else {
+          alert(data.error || 'Failed to claim chores.');
+        }
+        return;
+      }
+      // Remove the claimed chores from your area
+      setMyChores(prev => prev.filter(c => !taskIds.includes(parseInt(c.id, 10))));
+      alert(`Claimed ${data.claimedCount} chores!`);
+    } catch (err) {
+      console.error('Error claiming chores:', err);
+      alert('An unexpected error occurred while claiming chores.');
+    }
   };
 
   const handleCreateSubmit = async (e) => {
