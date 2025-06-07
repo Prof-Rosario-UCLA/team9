@@ -3,12 +3,9 @@ import { useEffect, useState } from 'react';
 export default function GlobalOfflineWrapper({ children }) {
   const [isOffline, setIsOffline] = useState(false);
 
-  const isEmulator = window.location.hostname === '10.0.2.2';
-  const baseURL = isEmulator ? 'http://10.0.2.2:8080' : 'http://localhost:8080';
-
   useEffect(() => {
     const checkConnection = () => {
-      fetch(`${baseURL}/ping`)
+      fetch("http://localhost:8080/ping")
         .then((res) => {
           if (!res.ok) throw new Error("Backend not OK");
           setIsOffline(false);

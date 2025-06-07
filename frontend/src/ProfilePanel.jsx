@@ -8,11 +8,10 @@ export default function ProfilePanel() {
   const [bio, setBio] = useState('This is a short bio.');
   const [contactInfo, setContactInfo] = useState('you@example.com | +1 000 000 0000');
   const fileInputRef = useRef(null);
-  const isEmulator = window.location.hostname === '10.0.2.2';
-  const baseURL = isEmulator ? 'http://10.0.2.2:8080' : 'http://localhost:8080';
+
   useEffect(() => {
     const token = localStorage.getItem("authToken");
-    fetch(`${baseURL}/getProfile`, {
+    fetch("http://localhost:8080/getProfile", {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -61,7 +60,7 @@ export default function ProfilePanel() {
     }
 
     try {
-      const res = await fetch(`${baseURL}/uploadBio`, {
+      const res = await fetch("http://localhost:8080/uploadBio", {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,

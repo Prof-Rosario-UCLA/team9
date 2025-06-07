@@ -4,9 +4,7 @@ export default function InboxPanel() {
   const [notices, setNotices] = useState([]);
   const [page, setPage] = useState(0);
   const ITEMS_PER_PAGE = 5;
-  const isEmulator = window.location.hostname === '10.0.2.2';
-  const baseURL = isEmulator ? 'http://10.0.2.2:8080' : 'http://localhost:8080';
-  
+
   useEffect(() => {
     const fetchInvitations = async () => {
       const token = localStorage.getItem("authToken");
@@ -16,7 +14,7 @@ export default function InboxPanel() {
       }
 
       try {
-        const resp = await fetch(`${baseURL}/getInvitations`, {
+        const resp = await fetch("http://localhost:8080/getInvitations", {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
@@ -47,7 +45,7 @@ export default function InboxPanel() {
     }
 
     try {
-      const resp = await fetch(`${baseURL}/acceptInvite`, {
+      const resp = await fetch("http://localhost:8080/acceptInvite", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

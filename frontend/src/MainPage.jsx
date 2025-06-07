@@ -18,12 +18,11 @@ export default function MainPage() {
   const [username, setUsername] = useState('Your Username');
   const [profilePic, setProfilePic] = useState(defaultAvatar);
   const navigate = useNavigate();
-  const isEmulator = window.location.hostname === '10.0.2.2';
-  const baseURL = isEmulator ? 'http://10.0.2.2:8080' : 'http://localhost:8080';
+
     // Fetch the existing profile
     useEffect(() => {
       const token = localStorage.getItem("authToken");
-      fetch(`${baseURL}/getProfile`, {
+      fetch("http://localhost:8080/getProfile", {
         method: "GET",
         headers: {
           "Content-Type": "application/json",

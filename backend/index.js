@@ -16,16 +16,16 @@ const port = process.env.PORT
 
 /* Middleware setup */
 app.use(cors({
-  origin: ["http://localhost:5173", "http://10.0.2.2:5173"],
+    origin: "http://localhost:5173",
 }))
 app.use(fileUpload({
     limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit
 }));
 app.use(express.json())
 
-app.listen(port, '0.0.0.0', () => {
-  console.log("server has started on port", port);
-});
+app.listen(port, () => {
+  console.log("server has started on port", port)
+})
 
 app.get("/ping", (req, res) => {
   res.status(200).send("pong");
@@ -101,7 +101,6 @@ try {
 
 /* Login endpoint */
 app.post('/login', async (req, res) => {
-  console.log('LOGIN endpoint hit');
 const { email, password } = req.body
 
 try {
@@ -907,5 +906,4 @@ app.post("/claimTasks", authenticateToken, async (req, res) => {
     console.error("Error in /claimTasks:", err);
     return res.status(500).json({ error: "Server error." });
   }
-  
 });
