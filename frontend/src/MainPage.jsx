@@ -13,6 +13,19 @@ import InboxPanel from './InboxPanel';
 
 export default function MainPage() {
   const [tutorialStep, setTutorialStep] = useState(0);
+  const tutorialSteps = ['Profile', 'Group', 'Statistics', 'Chore', 'Calendar2', 'Inbox'];
+
+  const getTutorialMessage = (step) => {
+    const labels = {
+      Profile: "This is your profile where you can update your picture, info, and contact.",
+      Group: "Manage your chore group here. Create, join, or invite friends.",
+      Statistics: "Track leaderboard stats and see who’s doing the most work.",
+      Chore: "Assign and claim chores in this panel.",
+      Calendar2: "View all tasks by date and interact with them on the calendar.",
+      Inbox: "Receive invites and notifications here.",
+    };
+    return labels[step] || '';
+  };
   const [showTutorial] = useState(() => localStorage.getItem('setupComplete') !== 'true');
   const [activePanel, setActivePanel] = useState(null);
   const [username, setUsername] = useState('Your Username');
@@ -108,12 +121,16 @@ export default function MainPage() {
       <div className={`bg-base-100 w-full md:w-56 flex-shrink-0 flex flex-col justify-between overflow-auto ${showTutorial ? 'pointer-events-none opacity-60' : ''}`}>
 
         <ul className="flex flex-row md:flex-col flex-wrap justify-center md:justify-start items-center gap-2 md:gap-1 p-2 text-info text-xs sm:text-sm">
-          <li><button onClick={() => setActivePanel('Profile')}>Profile</button></li>
-          <li><button onClick={() => setActivePanel('Group')}>Group</button></li>
-          <li><button onClick={() => setActivePanel('Statistics')}>Statistics</button></li>
-          <li><button onClick={() => setActivePanel('Chore')}>Chore</button></li>
-          <li><button onClick={() => setActivePanel('Calendar2')}>Calendar</button></li>
-          <li><button onClick={() => setActivePanel('Inbox')}>Inbox</button></li>
+                  {tutorialSteps.map((step, i) => (
+            <li key={step}>
+              <button
+                className={tutorialSteps[tutorialStep - 1] === step ? 'ring-4 ring-info rounded-md' : ''}
+                onClick={() => setActivePanel(step)}
+              >
+                {step}
+              </button>
+            </li>
+          ))}
         </ul>
           <div className="p-3 border-t border-base-300 flex items-center justify-between gap-2">
             <div className="flex items-center gap-2">
@@ -131,46 +148,55 @@ export default function MainPage() {
 
         {/* Content */}
         <div className="flex-1 relative overflow-auto">
-        {showTutorial && (
-            <div className="absolute inset-0 flex items-center justify-center p-2 z-30">
-              <button className="btn btn-info text-base-100 text-lg px-6 animate-pulse" onClick={() => navigate('/setup')}>
-                Get Started
-              </button>
-            </div>
-          )}
           {renderPopup()}
         </div>
       </div>
 
       {/* Tutorial Overlay */}
-      {showTutorial && (
-      <>
-        {/* Block interaction with rest of the page */}
+      {showTutorial && (<>
         <div className="absolute inset-0 z-40 bg-transparent pointer-events-none" />
+        <div className="absolute inset-0 z-50 flex items-center justify-center">
+          <div className="relative flex flex-col items-center px-4 text-center max-w-sm w-full">
+            <div className="bg-base-100 text-base-content p-4 rounded-2xl shadow-md w-full text-sm leading-relaxed">
+              {tutorialStep === 0 ? (
+                <>
+                  <p className="mb-2">Welcome to <span className="text-info font-semibold">GitBlame</span>!</p>
+                  <p className="mb-2">I'm <span className="text-info font-semibold">Furina</span>, your guide. I'm here to help you get started.</p>
+                  <p className="mb-2">This app helps you manage chores, organize groups, and track accountability through calendars and leaderboards.</p>
+                  <p className="mb-4 font-semibold">Would you like a quick tutorial?</p>
+                  <div className="flex justify-center gap-2">
+                    <button className="btn btn-sm btn-outline" onClick={() => {
+                      localStorage.setItem('setupComplete', 'true');
+                      window.location.reload();
+                    }}>Skip</button>
+                    <button className="btn btn-sm btn-info text-white shadow" onClick={() => setTutorialStep(1)}>Start Tutorial</button>
+                  </div>
+                </>
+              ) : tutorialStep <= tutorialSteps.length ? (
+                <>
+                  <p className="mb-4">{getTutorialMessage(tutorialSteps[tutorialStep - 1])}</p>
+                  <button className="btn btn-sm btn-info text-white shadow" onClick={() => setTutorialStep(tutorialStep + 1)}>
+                    Next
+                  </button>
+                </>
+              ) : (
+                <>
+                  <p className="mb-4">That's it! You've completed the tutorial.</p>
+                  <button className="btn btn-sm btn-success text-white shadow" onClick={() => {
+                    localStorage.setItem('setupComplete', 'true');
+                    window.location.reload();
+                  }}>Finish Tutorial</button>
+                </>
+              )}
+            </div>
 
-        {/* Tutorial UI */}
-        <div className="absolute bottom-4 right-4 flex flex-col items-end gap-3 z-50 max-w-full px-2">
-          <div className="bg-base-100 text-base-content p-4 rounded-xl shadow-md max-w-sm w-full text-sm leading-relaxed translate-y-[-10px]">
-            {tutorialStep === 0 && (
-              <>
-                Welcome to <span className="text-info font-semibold">GitBlame</span>!
-                This app helps manage chores fairly using groups, calendars, and leaderboards.
-                <div
-                  className="mt-2 text-info font-semibold text-right cursor-pointer hover:underline"
-                  onClick={() => setTutorialStep(1)}
-                >
-                  Click to continue →
+            {/* Furina avatar anchored bottom-right */}
+            <div className="absolute -bottom-10 -right-10">
+              <div className="avatar animate-bounce">
+                <div className="w-20 rounded-full ring-2 ring-info ring-offset-base-100 ring-offset-2">
+                  <img src={furinaPic} alt="Guide Furina" />
                 </div>
-              </>
-            )}
-            {tutorialStep === 1 && (
-              <>I’ll walk you through getting started. Begin by clicking the “Get Started” button!</>
-            )}
-          </div>
-
-          <div className="avatar animate-bounce">
-            <div className="w-20 rounded-full ring-2 ring-info ring-offset-base-100 ring-offset-2">
-              <img src={furinaPic} alt="Guide picture of furina from genshin" />
+              </div>
             </div>
           </div>
         </div>
