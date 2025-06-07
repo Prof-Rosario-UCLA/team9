@@ -13,7 +13,7 @@ import InboxPanel from './InboxPanel';
 
 export default function MainPage() {
   const [tutorialStep, setTutorialStep] = useState(0);
-  const tutorialSteps = ['Profile', 'Group', 'Statistics', 'Chore', 'Calendar2', 'Inbox'];
+  const tutorialSteps = ['Profile', 'Group', 'Statistics', 'Chore', 'Calendar', 'Inbox'];
 
   const getTutorialMessage = (step) => {
     const labels = {
@@ -21,7 +21,7 @@ export default function MainPage() {
       Group: "Manage your chore group here. Create, join, or invite friends.",
       Statistics: "Track leaderboard stats and see who’s doing the most work.",
       Chore: "Assign and claim chores in this panel.",
-      Calendar2: "View all tasks by date and interact with them on the calendar.",
+      Calendar: "View all tasks by date and interact with them on the calendar.",
       Inbox: "Receive invites and notifications here.",
     };
     return labels[step] || '';
