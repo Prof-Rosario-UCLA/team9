@@ -8,7 +8,8 @@ export default function GroupPanel() {
   const [members, setMembers] = useState([]);
   const [currentPage, setCurrentPage] = useState(0);
   const ITEMS_PER_PAGE = 3;
-
+  const isEmulator = window.location.hostname === '10.0.2.2';
+  const baseURL = isEmulator ? 'http://10.0.2.2:8080' : 'http://localhost:8080';
   // Handle getting group members
   useEffect(() => {
     if (activeTab !== "view") return;
@@ -22,7 +23,7 @@ export default function GroupPanel() {
       }
 
       try {
-        const resp = await fetch("http://localhost:8080/getGroupMembers", {
+        const resp = await fetch(`${baseURL}/getGroupMembers`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
@@ -76,7 +77,7 @@ export default function GroupPanel() {
     }
 
     try {
-      const resp = await fetch("http://localhost:8080/leaveGroup", {
+      const resp = await fetch(`${baseURL}/leaveGroup`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -117,7 +118,7 @@ export default function GroupPanel() {
       }
 
       // Send POST to /createGroup
-      const resp = await fetch("http://localhost:8080/createGroup", {
+      const resp = await fetch(`${baseURL}/createGroup`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -162,7 +163,7 @@ export default function GroupPanel() {
       }
 
       // Send POST to /inviteUser
-      const resp = await fetch("http://localhost:8080/inviteUser", {
+      const resp = await fetch(`${baseURL}/inviteUser`,  {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

@@ -1,8 +1,9 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useRef } from 'react';
-
+const isEmulator = window.location.hostname === '10.0.2.2';
+const baseURL = isEmulator ? 'http://10.0.2.2:8080' : 'http://localhost:8080';
 async function registerUser(credentials) {
-  const res = await fetch('http://localhost:8080/signup', {
+  const res = await fetch(`${baseURL}/signup`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(credentials),
@@ -11,6 +12,7 @@ async function registerUser(credentials) {
   if (!res.ok) throw new Error(data.error || 'Signup failed');
   return data.token;
 }
+
 
 export default function SignUp() {
   const navigate = useNavigate();

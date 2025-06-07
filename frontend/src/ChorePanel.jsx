@@ -15,7 +15,8 @@ export default function ChorePanel() {
     due_date: '',
     point_worth: 0
   });
-
+  const isEmulator = window.location.hostname === '10.0.2.2';
+  const baseURL = isEmulator ? 'http://10.0.2.2:8080' : 'http://localhost:8080';
   const ITEMS_PER_PAGE = 3;
   const ghostRef = useRef(null);
 
@@ -32,7 +33,7 @@ export default function ChorePanel() {
       }
 
       try {
-        const resp = await fetch('http://localhost:8080/getMyGroupTasks', {
+        const resp = await fetch(`${baseURL}/getMyGroupTasks`,  {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
@@ -212,7 +213,7 @@ export default function ChorePanel() {
     const taskIds = pageItems.map(c => parseInt(c.id, 10));
 
     try {
-      const resp = await fetch('http://localhost:8080/claimTasks', {
+      const resp = await fetch(`${baseURL}/claimTasks`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -262,7 +263,7 @@ export default function ChorePanel() {
     };
 
     try {
-      const resp = await fetch("http://localhost:8080/createTask", {
+      const resp = await fetch(`${baseURL}/createTask`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
