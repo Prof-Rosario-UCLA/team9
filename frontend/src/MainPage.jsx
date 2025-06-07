@@ -14,7 +14,13 @@ import InboxPanel from './InboxPanel';
 export default function MainPage() {
   const [tutorialStep, setTutorialStep] = useState(0);
   const tutorialSteps = ['Profile', 'Group', 'Statistics', 'Chore', 'Calendar', 'Inbox'];
-
+  const [showCookieBanner, setShowCookieBanner] = useState(() => {
+    return localStorage.getItem('cookieConsent') !== 'true';
+  });
+  const acceptCookies = () => {
+    localStorage.setItem('cookieConsent', 'true');
+    setShowCookieBanner(false);
+  };
   const getTutorialMessage = (step) => {
     const labels = {
       Profile: "This is your profile where you can update your picture, info, and contact.",
@@ -112,8 +118,10 @@ export default function MainPage() {
         </div>
       );
     };
+    
   
     return (
+      
       <div className="h-screen w-screen overflow-hidden relative">
         <header className={`navbar h-12 sm:h-14 px-2 sm:px-4 bg-base-100 text-base-content shadow-md border-b border-base-300 ${showTutorial ? 'pointer-events-none opacity-60' : ''}`}>
           <div className="flex-1">
@@ -168,8 +176,8 @@ export default function MainPage() {
         {showTutorial && (
           <>
             <div className="absolute inset-0 z-40 bg-transparent pointer-events-none" />
-            <section className="absolute inset-0 z-50 flex items-center justify-center">
-              <div className="relative flex flex-col items-center px-4 text-center max-w-sm w-full">
+            <section className="absolute inset-0 z-50 flex items-center justify-center px-2">
+              <div className="relative flex flex-col items-center text-center w-full max-w-md max-h-[90vh] overflow-auto p-4 bg-base-100 text-base-content rounded-2xl shadow-md text-sm leading-relaxed">
                 <div className="bg-base-100 text-base-content p-4 rounded-2xl shadow-md w-full text-sm leading-relaxed">
                   {tutorialStep === 0 ? (
                     <>
@@ -196,7 +204,7 @@ export default function MainPage() {
                     </>
                   )}
                 </div>
-                <div className="absolute -bottom-10 -right-10">
+                <div className="absolute bottom-2 right-2 md:bottom-[-2.5rem] md:right-[-2.5rem]">
                   <div className="avatar animate-bounce">
                     <div className="w-20 rounded-full ring-2 ring-info ring-offset-base-100 ring-offset-2">
                       <img src={furinaPic} alt="Guide Furina" />
@@ -207,6 +215,17 @@ export default function MainPage() {
             </section>
           </>
         )}
+        {showCookieBanner && (
+  <div className="fixed bottom-0 inset-x-0 z-50 bg-base-200 text-base-content text-sm p-4 shadow-md flex flex-col md:flex-row items-center justify-between gap-3">
+    <div>
+      This site uses cookies for authentication and functionality. By using this app, you acknowledge and accept our use of cookies. Learn more in our privacy policy.
+    </div>
+    <button className="btn btn-sm btn-info text-white" onClick={acceptCookies}>
+      I Understand
+    </button>
+  </div>
+)}
+
       </div>
     );
   }
