@@ -10,19 +10,19 @@ export default function ProfilePanel({ username, setUsername, profilePic, setPro
   const fileInputRef = useRef(null);
 
   useEffect(() => {
-    const token = localStorage.getItem("authToken");
     fetch("http://localhost:8080/getProfile", {
       method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
+      credentials: "include",
     })
       .then(async (res) => {
-        if (!res.ok) {
-          throw new Error("Failed to fetch profile");
-        }
-        return res.json();
+          if (res.status === 401 || res.status === 403) {
+            navigate("/signin");
+            return;
+          }
+          if (!res.ok) {
+            throw new Error("Failed to fetch profile");
+          }
+          return res.json();
       })
       .then((data) => {
         setLocalUsername(data.user_name || "");

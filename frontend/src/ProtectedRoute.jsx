@@ -1,26 +1,32 @@
 import { Navigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
 
 export default function ProtectedRoute({ children }) {
-  const token = localStorage.getItem('authToken');
+  const [authState, setAuthState] = useState('pending');
 
-  if (!token) {
+  useEffect(() => {
+    fetch('http://localhost:8080/getProfile', {
+      method: 'GET',
+      credentials: 'include',   // ← send your httpOnly cookie
+    })
+      .then(res => {
+        if (res.ok) {
+          setAuthState('ok');
+        } else {
+          setAuthState('fail');
+        }
+      })
+      .catch(() => {
+        setAuthState('fail');
+      });
+  }, []);
+
+  if (authState === 'pending') {
+    return null; 
+  }
+  if (authState === 'fail') {
     return <Navigate to="/signin" replace />;
   }
-
-  // Checks if authToken is expired
-  try {
-    const payloadBase64 = token.split('.')[1];
-    const payloadJson = atob(payloadBase64);
-    const { exp } = JSON.parse(payloadJson);
-
-  if (exp < Math.floor(Date.now() / 1000)) {
-      localStorage.removeItem('authToken');
-      return <Navigate to="/signin" replace />;
-    }
-  } catch (e) {
-    localStorage.removeItem('authToken');
-    return <Navigate to="/signin" replace />;
-  }
-
+  
   return children;
 }

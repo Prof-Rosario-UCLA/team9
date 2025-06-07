@@ -13,15 +13,21 @@ const app = express()
 const client = redis.createClient();
 client.connect().catch(console.error);
 const port = process.env.PORT
+const cookieParser = require('cookie-parser');
 
 /* Middleware setup */
 app.use(cors({
     origin: "http://localhost:5173",
+    credentials: true,
 }))
+
 app.use(fileUpload({
     limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit
 }));
+
 app.use(express.json())
+
+app.use(cookieParser());
 
 app.listen(port, () => {
   console.log("server has started on port", port)
@@ -33,18 +39,16 @@ app.get("/ping", (req, res) => {
 
 /* Authenticate the session token created during registration or login */
 function authenticateToken(req, res, next) {
-const authHeader = req.headers['authorization']
-const token = authHeader && authHeader.split(' ')[1]
-if (!token) return res.sendStatus(401)
-jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
-  if (err) return res.sendStatus(403)
-  //console.log("Decoded User:", user);
-  req.user = user
-  next()
-})
+  const token = req.cookies.token;
+  if (!token) return res.sendStatus(401);
+  jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+    if (err) return res.sendStatus(403);
+    req.user = { userId: decoded.userId, email: decoded.email };
+    next();
+  });
 }
 
-module.exports = pool
+//module.exports = pool
 
 /* Signup endpoint */
 app.post('/signup', async (req, res) => {
@@ -54,24 +58,24 @@ if (!email || !password || !userName) {
   return res.status(400).json({ error: "Email, password, and username are required." })
 }
 
-const client = await pool.connect() 
+const pgClient = await pool.connect() 
 
 try {
   // Start transaction
-  await client.query('BEGIN') 
+  await pgClient.query('BEGIN') 
 
-  const existingUser = await client.query(
+  const existingUser = await pgClient.query(
     'SELECT email FROM users WHERE email = $1', [email]
   )
 
   if (existingUser.rows.length > 0) {
-    await client.query('ROLLBACK')
+    await pgClient.query('ROLLBACK')
     return res.status(409).json({ error: "Email already exists." })
   }
 
   const hashedPassword = await bcrypt.hash(password, 10)
 
-  const newUser = await client.query(
+  const newUser = await pgClient.query(
     'INSERT INTO users (email, password, user_name, tutorial_completed) VALUES ($1, $2, $3, $4) RETURNING user_id',
     [email, hashedPassword, userName, false]
   )
@@ -79,7 +83,7 @@ try {
   const user_id = newUser.rows[0].user_id
 
   // Commit transaction
-  await client.query('COMMIT') 
+  await pgClient.query('COMMIT') 
 
   const token = jwt.sign(
     { userId: user_id, email },
@@ -87,7 +91,14 @@ try {
     { expiresIn: '1h' }
   )
 
-  res.status(201).json({ token })
+ res.cookie('token', token, {
+     httpOnly: true,
+     secure: process.env.NODE_ENV === 'production',
+     sameSite: 'Strict',
+     maxAge: 3600 * 1000,
+   })
+   .status(201)
+   .json({ success: true });
   console.log("User created")
 
 } catch (err) {
@@ -125,7 +136,15 @@ try {
     process.env.JWT_SECRET,
     { expiresIn: '1h' }
   )
-  res.json({ token })
+
+  res.cookie('token', token, {
+    httpOnly: true,
+    secure:   process.env.NODE_ENV === 'production',
+    sameSite: 'Strict',
+    maxAge:   3600 * 1000,
+  })
+  .status(201)
+  .json({ success: true });
 } catch (err) {
   console.error(err)
   res.status(500).send("Server Error")
@@ -661,6 +680,12 @@ app.get("/getGroupMembers", authenticateToken, async (req, res) => {
       return res.status(200).json({ inGroup: true, members });
     }
 
+    const { rows: groupRows } = await pool.query(
+      `SELECT name FROM groups WHERE group_id = $1`,
+      [groupId]
+    );
+    const groupName = groupRows[0].name;
+
     // Fetch all members of that group
     const { rows: memberRows } = await pool.query(
       `
@@ -695,7 +720,8 @@ app.get("/getGroupMembers", authenticateToken, async (req, res) => {
         contact_info: m.contact_info,
         pfp:          pfpBase64,
         pfp_mime:     m.pfp_mime,
-        points:       m.points
+        points:       m.points,
+        groupName
       };
     });
 

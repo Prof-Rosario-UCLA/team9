@@ -5,11 +5,12 @@ async function loginUser(credentials) {
   const res = await fetch('http://localhost:8080/login', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
     body: JSON.stringify(credentials),
   });
   const data = await res.json();
   if (!res.ok) throw new Error(data.error || 'Login failed');
-  return data.token;
+  return data.success;
 }
 
 export default function SignIn() {
@@ -24,8 +25,7 @@ export default function SignIn() {
       const password = passwordRef.current.value;
 
       try {
-        const token = await loginUser({ email, password });
-        localStorage.setItem('authToken', token);
+        await loginUser({ email, password });
         navigate('/main');
       } catch (err) {
         window.alert(err.message);

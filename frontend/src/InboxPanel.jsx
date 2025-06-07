@@ -6,20 +6,11 @@ export default function InboxPanel() {
   const ITEMS_PER_PAGE = 5;
 
     const fetchInvitations = async () => {
-      const token = localStorage.getItem("authToken");
-      if (!token) {
-        console.warn("No auth token found—cannot load invitations. Please log in again.");
-        return;
-      }
-
       try {
         const resp = await fetch("http://localhost:8080/getInvitations", {
           method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        });
+          credentials: "include",
+      });
 
         if (!resp.ok) {
           console.error("Failed to fetch invitations:", resp.status);
@@ -38,18 +29,12 @@ export default function InboxPanel() {
   }, []); 
 
     const handleAccept = async (groupId) => {
-    const token = localStorage.getItem("authToken");
-    if (!token) {
-      alert("Not authenticated. Please log in again.");
-      return;
-    }
-
     try {
       const resp = await fetch("http://localhost:8080/acceptInvite", {
         method: "POST",
+        credentials: "include", 
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({ group_id: groupId }),
       });

@@ -34,15 +34,15 @@ export default function MainPage() {
 
     // Fetch the existing profile
     useEffect(() => {
-      const token = localStorage.getItem("authToken");
       fetch("http://localhost:8080/getProfile", {
         method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
+        credentials: "include",
       })
         .then(async (res) => {
+          if (res.status === 401 || res.status === 403) {
+            navigate("/signin");
+            return;
+          }
           if (!res.ok) {
             throw new Error("Failed to fetch profile");
           }
@@ -66,13 +66,9 @@ export default function MainPage() {
 
     const finishTutorial = async () => {
     try {
-      const token = localStorage.getItem("authToken");
       await fetch("http://localhost:8080/completeTutorial", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
+        credentials: "include",
       });
     } catch (err) {
       console.error('Error completing tutorial:', err);

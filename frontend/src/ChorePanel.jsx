@@ -24,21 +24,10 @@ export default function ChorePanel() {
     if (activeTab !== 'view') return;
 
     const fetchTasks = async () => {
-      const token = localStorage.getItem('authToken');
-      if (!token) {
-        console.warn('No auth token found—cannot load chores.');
-        setUnclaimedChores([]);
-        setMyChores([]);
-        return;
-      }
-
       try {
         const resp = await fetch('http://localhost:8080/getMyGroupTasks', {
           method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
+          credentials: 'include'
         });
 
         const data = await resp.json();
@@ -200,11 +189,7 @@ export default function ChorePanel() {
   };
 
   const handleClaimPage = async () => {
-    const token = localStorage.getItem('authToken');
-    if (!token) {
-      alert('Not authenticated. Please log in again.');
-      return;
-    }
+
 
     // determine which chores are on the current page
     const start = pageMine * ITEMS_PER_PAGE;
@@ -218,12 +203,11 @@ export default function ChorePanel() {
     try {
       const resp = await fetch('http://localhost:8080/claimTasks', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ task_ids: taskIds }),
-      });
+     });
+
       const data = await resp.json();
       if (!resp.ok) {
         if (data.inGroup === false) {
@@ -251,12 +235,6 @@ export default function ChorePanel() {
       return;
     }
 
-    const token = localStorage.getItem("authToken");
-    if (!token) {
-      alert("Not authenticated. Please sign in again.");
-      return;
-    }
-
     // Prepare payload
     const payload = {
       description: formData.description.trim(),
@@ -265,15 +243,13 @@ export default function ChorePanel() {
       point_worth: formData.point_worth
     };
 
-    try {
-      const resp = await fetch("http://localhost:8080/createTask", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(payload),
-      }); 
+      try {
+        const resp = await fetch("http://localhost:8080/createTask", {
+          method: "POST",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
 
       const data = await resp.json();
       if (!resp.ok) {

@@ -5,11 +5,12 @@ async function registerUser(credentials) {
   const res = await fetch('http://localhost:8080/signup', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
     body: JSON.stringify(credentials),
   });
   const data = await res.json();
   if (!res.ok) throw new Error(data.error || 'Signup failed');
-  return data.token;
+  return data.sucess;
 }
 
 export default function SignUp() {
@@ -31,8 +32,7 @@ export default function SignUp() {
     }
 
     try {
-      const token = await registerUser({ userName, email, password });
-      localStorage.setItem('authToken', token);
+      await registerUser({ userName, email, password });
       navigate('/main');
     } catch (err) {
       window.alert(err.message);

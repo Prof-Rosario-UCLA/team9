@@ -16,21 +16,11 @@ export default function GroupPanel() {
     if (activeTab !== "view") return;
 
     const fetchMembers = async () => {
-      const token = localStorage.getItem("authToken");
-      if (!token) {
-        console.warn("No auth token found—cannot load group members.");
-        setMembers([]);
-        return;
-      }
-
       try {
         const resp = await fetch("http://localhost:8080/getGroupMembers", {
           method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        });
+          credentials: "include",
+      });
 
         if (!resp.ok) {
           console.error("Failed to fetch group members:", resp.status);
@@ -48,6 +38,7 @@ export default function GroupPanel() {
         }
 
         setInGroup(true);
+        setGroupName(data.members[0].groupName);
 
         const mapped = data.members.map((m) => {
           let avatar = "";
@@ -77,19 +68,10 @@ export default function GroupPanel() {
 
     // Handle leaving group
     const handleLeaveGroup = async () => {
-    const token = localStorage.getItem("authToken");
-    if (!token) {
-      alert("Not authenticated. Please log in again.");
-      return;
-    }
-
     try {
       const resp = await fetch("http://localhost:8080/leaveGroup", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
+        credentials: "include",
       });
 
       if (!resp.ok) {
@@ -118,20 +100,10 @@ export default function GroupPanel() {
     }
 
      try {
-
-      const token = localStorage.getItem("authToken");
-      if (!token) {
-        alert("Not authenticated. Please sign in again.");
-        return;
-      }
-
-      // Send POST to /createGroup
       const resp = await fetch("http://localhost:8080/createGroup", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: newGroupName.trim() }),
       });
 
@@ -164,19 +136,10 @@ export default function GroupPanel() {
     }
 
     try {
-      const token = localStorage.getItem("authToken");
-      if (!token) {
-        alert("Not authenticated. Please sign in again.");
-        return;
-      }
-
-      // Send POST to /inviteUser
       const resp = await fetch("http://localhost:8080/inviteUser", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ invited_user_email: invitedEmail.trim() }),
       });
 

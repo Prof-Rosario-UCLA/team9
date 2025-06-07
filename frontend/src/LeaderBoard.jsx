@@ -9,26 +9,25 @@ export default function StatisticsPanel() {
 
     useEffect(() => {
     const fetchLeaderboard = async () => {
-      const token = localStorage.getItem('authToken');
-      if (!token) {
-        console.warn('Not authenticated—cannot load leaderboard.');
+    try {
+      const resp = await fetch('http://localhost:8080/groupLeaderboard', {
+        credentials: 'include'
+      });
+
+      if (resp.status === 401 || resp.status === 403) {
         setInGroup(false);
         return;
       }
-      try {
-        const resp = await fetch('http://localhost:8080/groupLeaderboard', {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        const data = await resp.json();
-        if (!resp.ok || data.inGroup === false) {
-          setInGroup(false);
-        } else {
-          setUsers(data.leaderboard);
-        }
-      } catch (err) {
-        console.error('Error loading leaderboard:', err);
+      const data = await resp.json();
+      if (!resp.ok || data.inGroup === false) {
         setInGroup(false);
+      } else {
+        setUsers(data.leaderboard);
       }
+    } catch (err) {
+      console.error('Error loading leaderboard:', err);
+      setInGroup(false);
+    }
     };
 
     fetchLeaderboard();

@@ -13,13 +13,12 @@ export default function CalendarPanel2() {
   const [choresByDate, setChoresByDate] = useState({});
 
     const fetchTasks = async () => {
-      const token = localStorage.getItem('authToken');
-      if (!token) return;
-
       try {
         const resp = await fetch('http://localhost:8080/getMyGroupTasks', {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+          method: 'GET',
+          credentials: 'include'
+      });
+
         const data = await resp.json();
         if (!resp.ok || data.inGroup === false) {
           setChoresByDate({});
@@ -78,21 +77,14 @@ export default function CalendarPanel2() {
   // Claim handler
   const handleClaimChore = async () => {
     if (!selectedChore) return;
-    const token = localStorage.getItem('authToken');
-    if (!token) {
-      alert('Not authenticated.');
-      return;
-    }
-
     try {
       const resp = await fetch('http://localhost:8080/claimTasks', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ task_ids: [selectedChore.task_id] })
-      });
+    });
+
       const data = await resp.json();
       if (!resp.ok) {
         if (data.inGroup === false) {
@@ -116,20 +108,14 @@ export default function CalendarPanel2() {
   // Complete handler
   const handleCompleteChore = async () => {
     if (!selectedChore) return;
-    const token = localStorage.getItem('authToken');
-    if (!token) {
-      alert('Not authenticated.');
-      return;
-    }
     try {
       const resp = await fetch('http://localhost:8080/completeTasks', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ task_ids: [selectedChore.task_id] })
       });
+
       const data = await resp.json();
       if (!resp.ok) {
         if (data.inGroup === false) {
