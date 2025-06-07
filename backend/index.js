@@ -1017,6 +1017,7 @@ app.post("/completeTasks", authenticateToken, async (req, res) => {
   }
 });
 
+/* Retrieves Group Leaderboard */
 app.get("/groupLeaderboard", authenticateToken, async (req, res) => {
   try {
     const userId = req.user.userId;
@@ -1085,6 +1086,32 @@ app.get("/groupLeaderboard", authenticateToken, async (req, res) => {
     });
   } catch (err) {
     console.error("Error in /groupLeaderboard:", err);
+    return res.status(500).json({ error: "Server error." });
+  }
+});
+
+/* Marks Tutorial as Completed */
+app.post("/completeTutorial", authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.userId;
+
+    const { rowCount } = await pool.query(
+      `UPDATE users
+         SET tutorial_completed = TRUE
+       WHERE user_id = $1`,
+      [userId]
+    );
+
+    if (rowCount === 0) {
+      return res.status(404).json({ error: "User not found." });
+    }
+
+    await client.del(`profile:${userId}`);
+
+    // 3) Return success
+    return res.status(200).json({ tutorial_completed: true });
+  } catch (err) {
+    console.error("Error in /completeTutorial:", err);
     return res.status(500).json({ error: "Server error." });
   }
 });

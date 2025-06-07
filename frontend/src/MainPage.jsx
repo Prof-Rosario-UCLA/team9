@@ -26,7 +26,7 @@ export default function MainPage() {
     };
     return labels[step] || '';
   };
-  const [showTutorial] = useState(() => localStorage.getItem('setupComplete') !== 'true');
+  const [showTutorial, setShowTutorial] = useState(null);
   const [activePanel, setActivePanel] = useState(null);
   const [username, setUsername] = useState('Your Username');
   const [profilePic, setProfilePic] = useState(defaultAvatar);
@@ -56,11 +56,29 @@ export default function MainPage() {
           } else {
             setProfilePic(defaultAvatar);
           }
+          setShowTutorial(!data.tutorial_completed);
         })
         .catch((err) => {
           console.error("Error loading profile:", err);
+          setShowTutorial(false);
         });
     }, []);
+
+    const finishTutorial = async () => {
+    try {
+      const token = localStorage.getItem("authToken");
+      await fetch("http://localhost:8080/completeTutorial", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+    } catch (err) {
+      console.error('Error completing tutorial:', err);
+    }
+    setShowTutorial(false);
+    };
 
     const renderPopup = () => {
       if (!activePanel) return null;
@@ -164,10 +182,7 @@ export default function MainPage() {
                       <p className="mb-2">This app helps you manage chores, organize groups, and track accountability through calendars and leaderboards.</p>
                       <p className="mb-4 font-semibold">Would you like a quick tutorial?</p>
                       <div className="flex justify-center gap-2">
-                        <button className="btn btn-sm btn-outline" onClick={() => {
-                          localStorage.setItem('setupComplete', 'true');
-                          window.location.reload();
-                        }}>Skip</button>
+                        <button className="btn btn-sm btn-outline" onClick={finishTutorial}>Skip</button>
                         <button className="btn btn-sm btn-info text-white shadow" onClick={() => setTutorialStep(1)}>Start Tutorial</button>
                       </div>
                     </>
@@ -181,10 +196,7 @@ export default function MainPage() {
                   ) : (
                     <>
                       <p className="mb-4">That's it! You've completed the tutorial.</p>
-                      <button className="btn btn-sm btn-success text-white shadow" onClick={() => {
-                        localStorage.setItem('setupComplete', 'true');
-                        window.location.reload();
-                      }}>Finish Tutorial</button>
+                      <button className="btn btn-sm btn-success text-white shadow" onClick={finishTutorial}>Finish Tutorial</button>
                     </>
                   )}
                 </div>
