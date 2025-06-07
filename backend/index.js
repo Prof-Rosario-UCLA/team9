@@ -76,13 +76,13 @@ try {
     [email, hashedPassword, userName, false]
   )
 
-  const user_id = newUser.rows[0].person_id
+  const user_id = newUser.rows[0].user_id
 
   // Commit transaction
   await client.query('COMMIT') 
 
   const token = jwt.sign(
-    { user_id, email },
+    { userId: user_id, email },
     process.env.JWT_SECRET,
     { expiresIn: '1h' }
   )
