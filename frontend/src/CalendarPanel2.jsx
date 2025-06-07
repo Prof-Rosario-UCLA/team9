@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 export default function CalendarPanel2() {
   const [selectedDatePopup, setSelectedDatePopup] = useState(null);
@@ -10,28 +10,56 @@ export default function CalendarPanel2() {
   const [popupPage, setPopupPage] = useState(0);
   const ITEMS_PER_PAGE = 4;
 
-  const mockChores = [];
-  for (let day = 1; day <= 30; day++) {
-    if (day % 3 === 0) {
-      for (let i = 1; i <= 3; i++) {
-        mockChores.push({
-          description: `Chore ${i} on day ${day}`,
-          assigned: i % 2 === 0 ? 'Alice' : null,
-          points: i * 2,
-          created: `2025-06-${String(day).padStart(2, '0')}T08:30`,
-          dueDate: `2025-${String(currentMonth.getMonth() + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}T12:00`
+  const [choresByDate, setChoresByDate] = useState({});
+
+  useEffect(() => {
+    const fetchTasks = async () => {
+      const token = localStorage.getItem('authToken');
+      if (!token) return;
+
+      try {
+        const resp = await fetch('http://localhost:8080/getMyGroupTasks', {
+          headers: { Authorization: `Bearer ${token}` }
         });
+        const data = await resp.json();
+        if (!resp.ok || data.inGroup === false) {
+          setChoresByDate({});
+          return;
+        }
+
+        const tasks = data.group.tasks;
+        // group by date string
+        const byDate = {};
+        tasks.forEach(t => {
+          const d = new Date(t.due_date);
+          const dateStr = d.toISOString().slice(0,10);
+          if (!byDate[dateStr]) byDate[dateStr] = [];
+          byDate[dateStr].push({
+            task_id: t.task_id,
+            description: t.description,
+            assigned: t.claimed_by ? 'Claimed' : null,
+            points: t.point_worth,
+            created: t.created_at,
+            dueDate: t.due_date,
+            completed:  t.is_completed
+          });
+        });
+        setChoresByDate(byDate);
+      } catch (err) {
+        console.error('Error loading tasks for calendar:', err);
+        setChoresByDate({});
       }
-    }
-  }
+    };
+
+    fetchTasks();
+  }, [currentMonth]);
 
   const year = currentMonth.getFullYear();
   const month = currentMonth.getMonth();
   const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const monthName = currentMonth.toLocaleString('default', { month: 'long' });
 
-  const getChoresForDate = (dateStr) => {
-    return mockChores.filter(c => c.dueDate.startsWith(dateStr));
-  };
+  const getChoresForDate = dateStr => choresByDate[dateStr] || [];
 
   const handlePrevMonth = () => {
     setCurrentMonth(prev => new Date(prev.getFullYear(), prev.getMonth() - 1, 1));
@@ -47,7 +75,80 @@ export default function CalendarPanel2() {
     setPopupPage(0);
   };
 
-  const monthName = currentMonth.toLocaleString('default', { month: 'long' });
+  // Claim handler
+  const handleClaimChore = async () => {
+    if (!selectedChore) return;
+    const token = localStorage.getItem('authToken');
+    if (!token) {
+      alert('Not authenticated.');
+      return;
+    }
+
+    try {
+      const resp = await fetch('http://localhost:8080/claimTasks', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ task_ids: [selectedChore.task_id] })
+      });
+      const data = await resp.json();
+      if (!resp.ok) {
+        if (data.inGroup === false) {
+          alert('You are not in a group.');
+        } else {
+          alert(data.error || 'Failed to claim chore.');
+        }
+      } else {
+        alert(`Claimed chore!`);
+        // reloads
+        fetchTasks();
+      }
+    } catch (err) {
+      console.error('Error claiming chore:', err);
+      alert('Error claiming chore.');
+    } finally {
+      setSelectedChore(null);
+    }
+  };
+  
+  // Complete handler
+  const handleCompleteChore = async () => {
+    if (!selectedChore) return;
+    const token = localStorage.getItem('authToken');
+    if (!token) {
+      alert('Not authenticated.');
+      return;
+    }
+    try {
+      const resp = await fetch('http://localhost:8080/completeTasks', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ task_ids: [selectedChore.task_id] })
+      });
+      const data = await resp.json();
+      if (!resp.ok) {
+        if (data.inGroup === false) {
+          alert('You are not in a group.');
+        } else {
+          alert(data.error || 'Failed to complete chore.');
+        }
+      } else {
+        alert(`Marked chore complete!`);
+        // reload
+        fetchTasks();
+      }
+    } catch (err) {
+      console.error('Error completing chore:', err);
+      alert('Error completing chore.');
+    } finally {
+      setSelectedChore(null);
+    }
+  };
 
   return (
     <div className="w-full h-full flex flex-col p-2 overflow-hidden">
@@ -84,10 +185,15 @@ export default function CalendarPanel2() {
               <div className="font-bold">{day}</div>
               <div className="w-full min-w-0 flex-grow overflow-y-auto" style={{ fontSize: '0.85rem', lineHeight: '1.2' }}>
                 {chores.slice(0, 2).map((chore, j) => (
-                  <div key={j} className="truncate">• {chore.description}</div>
+                  <div
+                    key={j}
+                    className={`truncate ${chore.completed ? 'line-through text-base-content/50' : ''}`}
+                  >
+                    • {chore.description}
+                  </div>
                 ))}
-                {chores.length > 2 && (
-                  <div className="italic text-base-content/70 text-[9px]">+{chores.length - 2} more</div>
+                {chores.length>2 && (
+                  <div className="italic text-base-content/70 text-[9px]">+{chores.length-2} more</div>
                 )}
               </div>
             </div>
@@ -114,8 +220,10 @@ export default function CalendarPanel2() {
                       setSelectedDatePopup(null);
                     }}
                   >
-                    <p className="font-semibold">{chore.description}</p>
-                    <p className="text-sm">{chore.assigned || 'Unclaimed'}</p>
+                    <p className={`font-semibold ${chore.completed ? 'line-through text-base-content/50' : ''}`}>
+                      {chore.description}
+                    </p>
+                    <p className="text-sm">{chore.assigned || (chore.completed ? 'Completed' : 'Unclaimed')}</p>
                   </div>
               ))}
             </div>
@@ -152,32 +260,29 @@ export default function CalendarPanel2() {
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
           <div className="bg-base-100 rounded-box p-4 w-full max-w-md text-sm text-base-content border border-info shadow-lg max-h-[90vh] overflow-auto">
             <h3 className="text-xl text-info font-bold mb-4 text-center">{selectedChore.description}</h3>
-            <p className="mb-2">Assigned: {selectedChore.assigned || 'Unclaimed'}</p>
+            <p className="mb-2">Assigned: {selectedChore.assigned || (selectedChore.completed ? 'Completed' : 'Unclaimed')}</p>
             <p className="mb-2">Points: {selectedChore.points}</p>
             <p className="mb-2">Created: {selectedChore.created}</p>
             <p className="mb-2">Due: {selectedChore.dueDate}</p>
 
-            {!selectedChore.assigned && (
+            {!selectedChore.assigned && !selectedChore.completed && (
               <button
                 className="btn btn-info btn-sm text-white w-full mt-4"
-                onClick={() => {
-                  alert('You claimed the chore (mock)');
-                  setSelectedChore(null);
-                }}
+                onClick={handleClaimChore}
               >
                 Claim this chore
               </button>
             )}
-            {selectedChore.assigned && (
+            {selectedChore.assigned && !selectedChore.completed && (
               <button
                 className="btn btn-success btn-sm text-white w-full mt-2"
-                onClick={() => {
-                  alert('You marked this chore as completed (mock)');
-                  setSelectedChore(null);
-                }}
+                onClick={handleCompleteChore}
               >
                 Mark as Completed
               </button>
+            )}
+            {selectedChore.completed && (
+              <div className="text-center text-base-content/60 mt-2">Already completed</div>
             )}
 
             <button className="btn btn-sm w-full mt-2" onClick={() => setSelectedChore(null)}>

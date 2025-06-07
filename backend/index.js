@@ -907,3 +907,96 @@ app.post("/claimTasks", authenticateToken, async (req, res) => {
     return res.status(500).json({ error: "Server error." });
   }
 });
+
+/* Marks Task as Complete */
+app.post("/completeTasks", authenticateToken, async (req, res) => {
+  const userId = req.user.userId;
+  const { task_ids } = req.body;
+
+  // Validate input
+  if (
+    !Array.isArray(task_ids) ||
+    task_ids.length === 0 ||
+    !task_ids.every(id => Number.isInteger(id) && id > 0)
+  ) {
+    return res.status(400).json({
+      error: "task_ids must be a non-empty array of positive integers."
+    });
+  }
+
+  const pgClient = await pool.connect();
+  try {
+    await pgClient.query("BEGIN");
+
+    // Get user profile and group
+    const {
+      rows: [profileRow],
+    } = await pgClient.query(
+      `SELECT profile_id, group_id
+         FROM profiles
+         WHERE user_id = $1`,
+      [userId]
+    );
+
+    if (!profileRow) {
+      await pgClient.query("ROLLBACK");
+      return res.status(200).json({ inGroup: false });
+    }
+    const { profile_id: profileId, group_id: groupId } = profileRow;
+
+    // Fetch points for those tasks
+    const { rows: pointsRows } = await pgClient.query(
+      `
+      SELECT point_worth
+      FROM tasks
+      WHERE task_id = ANY($1::int[])
+        AND claimed_by = $2
+        AND NOT is_completed
+      `,
+      [task_ids, profileId]
+    );
+
+    if (pointsRows.length === 0) {
+      await pgClient.query("ROLLBACK");
+      return res.status(400).json({ error: "No eligible tasks to complete." });
+    }
+    const totalPoints = pointsRows.reduce((sum, r) => sum + r.point_worth, 0);
+
+    const { rowCount } = await pgClient.query(
+      `
+      UPDATE tasks
+      SET is_completed = TRUE,
+          completed_at = NOW()
+      WHERE task_id = ANY($1::int[])
+        AND claimed_by = $2
+      `,
+      [task_ids, profileId]
+    );
+
+    // Add points to the profile
+    await pgClient.query(
+      `
+      UPDATE profiles
+      SET points = points + $1
+      WHERE profile_id = $2
+      `,
+      [totalPoints, profileId]
+    );
+
+    await client.del(`myGroupTasks:${groupId}`);
+
+    await pgClient.query("COMMIT");
+
+    return res.status(200).json({
+      completedCount: rowCount,
+      completed_task_ids: task_ids,
+      pointsAwarded: totalPoints
+    });
+  } catch (err) {
+    await pgClient.query("ROLLBACK");
+    console.error("Error in /completeTasks:", err);
+    return res.status(500).json({ error: "Server error." });
+  } finally {
+    pgClient.release();
+  }
+});
