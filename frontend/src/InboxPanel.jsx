@@ -5,7 +5,6 @@ export default function InboxPanel() {
   const [page, setPage] = useState(0);
   const ITEMS_PER_PAGE = 5;
 
-  useEffect(() => {
     const fetchInvitations = async () => {
       const token = localStorage.getItem("authToken");
       if (!token) {
@@ -34,6 +33,7 @@ export default function InboxPanel() {
       }
     };
 
+  useEffect(() => {
     fetchInvitations();
   }, []); 
 

@@ -12,7 +12,6 @@ export default function CalendarPanel2() {
 
   const [choresByDate, setChoresByDate] = useState({});
 
-  useEffect(() => {
     const fetchTasks = async () => {
       const token = localStorage.getItem('authToken');
       if (!token) return;
@@ -51,6 +50,7 @@ export default function CalendarPanel2() {
       }
     };
 
+  useEffect(() => {
     fetchTasks();
   }, [currentMonth]);
 
