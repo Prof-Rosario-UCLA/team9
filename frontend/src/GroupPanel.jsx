@@ -3,11 +3,12 @@ import defaultAvatar from "./assets/defaultpfp.png";
 
 export default function GroupPanel() {
   const [activeTab, setActiveTab] = useState("view");
-  const [groupName, setGroupName] = useState("The Clean Dream Team");
+  const [groupName, setGroupName] = useState("Currently not in a Team!");
   const [newGroupName, setNewGroupName] = useState("");
   const [invitedEmail, setInvitedEmail] = useState("");
   const [members, setMembers] = useState([]);
   const [currentPage, setCurrentPage] = useState(0);
+  const [inGroup, setInGroup] = useState(false);
   const ITEMS_PER_PAGE = 3;
 
   // Handle getting group members
@@ -41,8 +42,12 @@ export default function GroupPanel() {
         // If user is not in a group, we get
         if (!data.inGroup) {
           setMembers([]); 
+          setInGroup(false);
+          setGroupName("Currently not in a Team!");
           return;
         }
+
+        setInGroup(true);
 
         const mapped = data.members.map((m) => {
           let avatar = "";
@@ -97,6 +102,7 @@ export default function GroupPanel() {
       // Clear group name and members
       setMembers([]);
       setGroupName("");
+      setInGroup(false);
       alert("You have left the group.");
     } catch (err) {
       console.error("Error while leaving group:", err);
@@ -232,11 +238,12 @@ export default function GroupPanel() {
                 ))}
               </div>
             )}
-
+            {inGroup &&
             <button 
             className="btn btn-error btn-sm w-full"
             onClick={handleLeaveGroup}
-            >Leave Group</button>
+            >Leave Group</button>}
+
           </>
         );
       case "join":
@@ -288,8 +295,26 @@ export default function GroupPanel() {
     <div className="max-w-md sm:max-w-lg w-full mx-auto bg-base-100 p-4 sm:p-6 rounded-lg shadow-md border border-base-300 text-sm sm:text-base overflow-hidden">
       <div className="tabs justify-center mb-4">
         <a className={`tab tab-bordered ${activeTab === "view" ? "tab-active" : ""}`} onClick={() => setActiveTab("view")}>View</a>
-        <a className={`tab tab-bordered ${activeTab === "create" ? "tab-active" : ""}`} onClick={() => setActiveTab("create")}>Create</a>
-        <a className={`tab tab-bordered ${activeTab === "invite" ? "tab-active" : ""}`} onClick={() => setActiveTab("invite")}>Invite</a>
+        <a
+        className={`
+          tab tab-bordered
+          ${inGroup ? "opacity-50 pointer-events-none" : ""}
+          ${activeTab === "create" ? "tab-active" : ""}
+        `}
+        onClick={() => { if (!inGroup) setActiveTab("create"); }}
+      >
+        Create
+      </a>
+        <a
+        className={`
+          tab tab-bordered 
+          ${!inGroup ? "opacity-50 pointer-events-none" : ""}
+          ${activeTab === "invite" ? "tab-active" : ""}
+        `}
+        onClick={() => inGroup && setActiveTab("invite")}
+      >
+        Invite
+      </a>
       </div>
       {renderContent()}
     </div>

@@ -717,15 +717,15 @@ app.get("/getGroupMembers", authenticateToken, async (req, res) => {
 /* Leave Group API */
 app.post("/leaveGroup", authenticateToken, async (req, res) => {
   const userId = req.user.userId;
-  const client = await pool.connect();
+  const pgClient = await pool.connect();
 
   try {
-    await client.query("BEGIN");
+    await pgClient.query("BEGIN");
 
     // Find the group_id that this user belongs to
     const {
       rows: [profileRow],
-    } = await client.query(
+    } = await pgClient.query(
       `SELECT group_id
          FROM profiles
          WHERE user_id = $1`,
@@ -733,7 +733,7 @@ app.post("/leaveGroup", authenticateToken, async (req, res) => {
     );
 
     if (!profileRow) {
-      await client.query("ROLLBACK");
+      await pgClient.query("ROLLBACK");
       return res.status(400).json({ error: "You are not in a group." });
     }
 
@@ -742,7 +742,7 @@ app.post("/leaveGroup", authenticateToken, async (req, res) => {
     // Check if the user is the owner of that group
     const {
       rows: [groupRow],
-    } = await client.query(
+    } = await pgClient.query(
       `SELECT owner_user_id
          FROM groups
          WHERE group_id = $1`,
@@ -753,14 +753,14 @@ app.post("/leaveGroup", authenticateToken, async (req, res) => {
 
     if (isOwner) {
       // If owner, delete the group itself
-      await client.query(
+      await pgClient.query(
         `DELETE FROM groups
            WHERE group_id = $1`,
         [groupId]
       );
     } else {
       // If not owner, simply remove the profile row, which signifies a leave group.
-      await client.query(
+      await pgClient.query(
         `DELETE FROM profiles
            WHERE user_id = $1
              AND group_id = $2`,
@@ -768,7 +768,7 @@ app.post("/leaveGroup", authenticateToken, async (req, res) => {
       );
     }
 
-    await client.query("COMMIT");
+    await pgClient.query("COMMIT");
     await client.del(`myGroupTasks:${groupId}`);
     await client.del(`groupLeaderboard:${groupId}`);
 
@@ -782,11 +782,11 @@ app.post("/leaveGroup", authenticateToken, async (req, res) => {
         .json({ message: "You have left the group successfully." });
     }
   } catch (err) {
-    await client.query("ROLLBACK");
+    await pgClient.query("ROLLBACK");
     console.error("Error in /leaveGroup:", err);
     return res.status(500).json({ error: "Server error." });
   } finally {
-    client.release();
+    pgClient.release();
   }
 });
 

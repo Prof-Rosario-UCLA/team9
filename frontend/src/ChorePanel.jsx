@@ -10,6 +10,7 @@ export default function ChorePanel() {
   const [selectedChore, setSelectedChore] = useState(null);
   const [pageUnclaimed, setPageUnclaimed] = useState(0);
   const [pageMine, setPageMine] = useState(0);
+  const [inGroup, setInGroup] = useState(false);
   const [formData, setFormData] = useState({
     description: '',
     due_date: '',
@@ -42,11 +43,12 @@ export default function ChorePanel() {
 
         const data = await resp.json();
         if (!resp.ok || data.inGroup === false) {
+          setInGroup(false);
           setUnclaimedChores([]);
           setMyChores([]);
           return;
         }
-
+        
         const tasks = data.group.tasks;
         // unclaimed
         const unclaimed = tasks
@@ -58,11 +60,13 @@ export default function ChorePanel() {
             due_date: t.due_date,
             point_worth: t.point_worth
           }));
-
+        
+        setInGroup(true);
         setUnclaimedChores(unclaimed);
         setPageUnclaimed(0);
       } catch (err) {
         console.error('Error fetching chores:', err);
+        setInGroup(false);
         setUnclaimedChores([]);
         setMyChores([]);
       }
@@ -315,6 +319,11 @@ export default function ChorePanel() {
         </section>
       ) : (
         <section className="flex flex-col items-center justify-center h-full gap-4">
+                    { !inGroup ? (
+            <div className="text-center text-base-content/60 p-4">
+              You need to be in a group before you can add chores.
+            </div>
+          ) : (
           <form onSubmit={handleCreateSubmit} className="bg-base-200 p-4 rounded-box flex flex-col gap-3 w-full max-w-sm">
             <h3 className="text-lg font-bold text-info">Create a Chore</h3>
             <input
@@ -339,6 +348,7 @@ export default function ChorePanel() {
             />
             <button className="btn btn-info btn-sm text-white w-full">Add Chore</button>
           </form>
+          )}
         </section>
       )}
 

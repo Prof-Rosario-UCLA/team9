@@ -42,14 +42,6 @@ CREATE TABLE tasks (
     is_completed BOOLEAN DEFAULT FALSE
 );
 
--- Favorites/Likes
-CREATE TABLE user_likes (
-    liked_user_id INT REFERENCES users(user_id) ON DELETE CASCADE,
-    liked_by_user_id INT REFERENCES users(user_id) ON DELETE CASCADE,
-    PRIMARY KEY (liked_user_id, liked_by_user_id),
-    CHECK (liked_user_id <> liked_by_user_id)
-);
-
 -- Invitations
 CREATE TABLE group_invitations (
     invite_id SERIAL PRIMARY KEY,
