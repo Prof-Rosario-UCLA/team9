@@ -83,17 +83,20 @@ export default function ProfilePanel() {
   };
 
   return (
-    <div className="max-w-md w-full mx-auto bg-base-100 p-3 sm:p-4 rounded-lg shadow-md border border-base-300 max-h-[75vh] overflow-y-auto text-[10px] sm:text-xs">
-      <h2 className="text-base sm:text-lg font-bold text-info mb-3">Edit Profile</h2>
+    <article className="max-w-md w-full mx-auto bg-base-100 p-3 sm:p-4 rounded-lg shadow-md border border-base-300 max-h-[75vh] overflow-y-auto text-[10px] sm:text-xs text-base-content">
+      <header>
+        <h2 className="text-base sm:text-lg font-bold text-info mb-3">Edit Profile</h2>
+      </header>
 
-      <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4 mb-3">
-        <div className="avatar relative">
+      <section className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4 mb-3">
+        <figure className="avatar relative">
           <div className="w-16 sm:w-20 rounded-full ring ring-info ring-offset-base-100 ring-offset-2">
-            <img src={profilePic} alt="Profile" />
+            <img src={profilePic} alt="Profile picture" />
           </div>
           <button
             className="absolute bottom-0 right-0 btn btn-[8px] sm:btn-xs btn-info min-h-0 h-5 px-2"
             onClick={() => fileInputRef.current.click()}
+            aria-label="Edit profile picture"
           >
             Edit
           </button>
@@ -104,60 +107,68 @@ export default function ProfilePanel() {
             accept="image/*"
             onChange={handleImageUpload}
           />
-        </div>
+        </figure>
 
-        <div className="text-center sm:text-left">
-          <h3 className="font-semibold text-white truncate">{username}</h3>
-          <p className="text-[9px] text-gray-400 break-words">{contactInfo}</p>
-        </div>
-      </div>
+        <section className="text-center sm:text-left">
+          <h3 className="font-semibold truncate">{username}</h3>
+          <p className="text-[9px] text-base-content/60 break-words">{contactInfo}</p>
+        </section>
+      </section>
 
-      <div className="mb-3">
+      <section className="mb-3">
         <h4 className="font-semibold text-info mb-1">Bio</h4>
-        <p className="text-white break-words">{bio || 'No bio provided yet.'}</p>
-      </div>
+        <p className="break-words">{bio || 'No bio provided yet.'}</p>
+      </section>
 
-      <form className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-white">
-        <div>
-          <label className="block mb-1 text-gray-400">Username</label>
+      <form
+        className="grid grid-cols-1 sm:grid-cols-2 gap-2"
+        onSubmit={(e) => {
+          e.preventDefault();
+          handleSubmit();
+        }}
+      >
+        <section>
+          <label htmlFor="username" className="block mb-1 text-base-content/60">Username</label>
           <input
+            id="username"
             type="text"
             className="input input-xs input-bordered w-full"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
           />
-        </div>
+        </section>
 
-        <div>
-          <label className="block mb-1 text-gray-400">Bio</label>
+        <section>
+          <label htmlFor="bio" className="block mb-1 text-base-content/60">Bio</label>
           <input
+            id="bio"
             type="text"
             className="input input-xs input-bordered w-full"
             value={bio}
             onChange={(e) => setBio(e.target.value)}
           />
-        </div>
+        </section>
 
-        <div className="sm:col-span-2">
-          <label className="block mb-1 text-gray-400">Contact Info</label>
+        <section className="sm:col-span-2">
+          <label htmlFor="contactInfo" className="block mb-1 text-base-content/60">Contact Info</label>
           <input
+            id="contactInfo"
             type="text"
             className="input input-xs input-bordered w-full"
             value={contactInfo}
             onChange={(e) => setContactInfo(e.target.value)}
           />
+        </section>
+
+        <div className="mt-4 sm:col-span-2 flex justify-end">
+          <button
+            className="btn btn-xs sm:btn-sm btn-info text-white"
+            type="submit"
+          >
+            Save
+          </button>
         </div>
       </form>
-
-      <div className="mt-4 flex justify-end">
-        <button
-          className="btn btn-xs sm:btn-sm btn-info text-white"
-          onClick={handleSubmit}
-          type="button"
-        >
-          Save
-        </button>
-      </div>
-    </div>
+    </article>
   );
 }

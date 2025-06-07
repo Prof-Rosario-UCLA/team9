@@ -119,7 +119,7 @@ export default function MainPage() {
             <div className="flex items-center gap-2">
               <div className="avatar">
                 <div className="w-10 rounded-full ring-2 ring-primary ring-offset-base-100 ring-offset-2">
-                  <img src={profilePic} alt="Profile" />
+                  <img src={profilePic} alt="Profile picture" />
                 </div>
               </div>
               <div className="text-sm font-semibold text-base-content">{username}</div>
@@ -170,7 +170,7 @@ export default function MainPage() {
 
           <div className="avatar animate-bounce">
             <div className="w-20 rounded-full ring-2 ring-info ring-offset-base-100 ring-offset-2">
-              <img src={furinaPic} alt="Guide" />
+              <img src={furinaPic} alt="Guide picture of furina from genshin" />
             </div>
           </div>
         </div>
