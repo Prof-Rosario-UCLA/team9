@@ -1,4 +1,3 @@
-// GlobalOfflineWrapper.jsx
 import { useEffect, useState } from 'react';
 
 export default function GlobalOfflineWrapper({ children }) {
@@ -26,12 +25,12 @@ export default function GlobalOfflineWrapper({ children }) {
 
   return (
     <>
-      {isOffline && (
-        <div className="fixed inset-0 z-50 bg-base-100/80 backdrop-blur-sm flex flex-col items-center justify-center text-center p-6">
-          <span className="loading loading-dots loading-lg text-primary" />
-          <p className="mt-4 text-lg text-gray-600">We are trying to fetch the data...</p>
-        </div>
-      )}
+      <div className="fixed bottom-4 right-4 z-50 flex items-center gap-2 px-3 py-1 rounded-full shadow bg-base-100 border">
+        <span className={`font-bold ${isOffline ? 'text-red-500' : 'text-green-500'}`}>
+          {isOffline ? 'Offline' : 'Online'}
+        </span>
+        <div className={`w-3 h-3 rounded-full ${isOffline ? 'bg-red-500' : 'bg-green-400'}`} />
+      </div>
       {children}
     </>
   );
