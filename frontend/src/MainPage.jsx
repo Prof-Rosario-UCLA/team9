@@ -71,7 +71,7 @@ export default function MainPage() {
       if (activePanel === 'Group') content = <GroupPanel />;
       if (activePanel === 'Statistics') content = <StatisticsPanel />;
       if (activePanel === 'Inbox') content = <InboxPanel />;
-      if (activePanel === 'Calendar2') {
+      if (activePanel === 'Calendar') {
         content = <CalendarPanel2 />;
         popupStyle = {
           overflow: 'hidden',
