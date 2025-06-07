@@ -3,18 +3,16 @@ import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 
 export default defineConfig({
+  base: '/', 
   plugins: [
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-
-      // Enable service worker during development
       devOptions: {
         enabled: true,
         type: 'module',
-        navigateFallback: '/',
+        navigateFallback: '/index.html', 
       },
-
       manifest: {
         name: 'GitBlame',
         short_name: 'GitBlame',
@@ -22,7 +20,7 @@ export default defineConfig({
         theme_color: '#ffffff',
         background_color: '#ffffff',
         display: 'standalone',
-        start_url: '/',
+        start_url: '/', 
         icons: [
           {
             src: 'pwa-192x192-new.png',
@@ -42,37 +40,29 @@ export default defineConfig({
           },
         ],
       },
-
       workbox: {
+        skipWaiting: true,
+        clientsClaim: true,
         runtimeCaching: [
           {
-            // Cache HTML pages (including your React entry point)
             urlPattern: ({ request }) => request.destination === 'document',
             handler: 'NetworkFirst',
-            options: {
-              cacheName: 'html-cache',
-            },
+            options: { cacheName: 'html-cache' },
           },
           {
-            // Cache JS, CSS, and worker files
             urlPattern: ({ request }) =>
-              request.destination === 'style' ||
-              request.destination === 'script' ||
-              request.destination === 'worker',
+              ['style', 'script', 'worker'].includes(request.destination),
             handler: 'StaleWhileRevalidate',
-            options: {
-              cacheName: 'asset-cache',
-            },
+            options: { cacheName: 'asset-cache' },
           },
           {
-            // Cache images (optional but recommended)
             urlPattern: ({ request }) => request.destination === 'image',
             handler: 'CacheFirst',
             options: {
               cacheName: 'image-cache',
               expiration: {
                 maxEntries: 50,
-                maxAgeSeconds: 30 * 24 * 60 * 60, // 30 days
+                maxAgeSeconds: 30 * 24 * 60 * 60,
               },
             },
           },

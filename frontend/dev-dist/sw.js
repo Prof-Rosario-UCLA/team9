@@ -82,7 +82,7 @@ define(['./workbox-ecdd2ace'], (function (workbox) { 'use strict';
     "revision": "3ca0b8505b4bec776b69afdba2768812"
   }, {
     "url": "index.html",
-    "revision": "0.u2kjpdncfu8"
+    "revision": "0.96ruvla4qug"
   }], {});
   workbox.cleanupOutdatedCaches();
   workbox.registerRoute(new workbox.NavigationRoute(workbox.createHandlerBoundToURL("index.html"), {
@@ -96,7 +96,7 @@ define(['./workbox-ecdd2ace'], (function (workbox) { 'use strict';
   }), 'GET');
   workbox.registerRoute(({
     request
-  }) => request.destination === "style" || request.destination === "script" || request.destination === "worker", new workbox.StaleWhileRevalidate({
+  }) => ["style", "script", "worker"].includes(request.destination), new workbox.StaleWhileRevalidate({
     "cacheName": "asset-cache",
     plugins: []
   }), 'GET');

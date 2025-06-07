@@ -4,11 +4,18 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>GitBlame</title>
+
+    <!-- Manifest + theme color for PWA -->
     <link rel="manifest" href="/manifest.json" />
+    <meta name="theme-color" content="#ffffff" />
+
+    <!-- Theme init before DOM renders -->
     <script>
       const savedTheme = localStorage.getItem('theme') || 'dark';
       document.documentElement.setAttribute('data-theme', savedTheme);
     </script>
+
+    <!-- Service worker injected by Vite PWA plugin -->
     <script id="vite-plugin-pwa:register-sw" src="/registerSW.js"></script>
   </head>
   <body class="h-full">
