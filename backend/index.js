@@ -180,6 +180,19 @@ try {
       await pgClient.query("COMMIT");
       await client.del(cacheKey);
 
+    const { rows } = await pool.query(
+      `SELECT group_id
+         FROM profiles
+         WHERE user_id = $1`,
+      [userId]
+    );
+    if (rows.length) {
+      const groupId = rows[0].group_id;
+      await client.del(`myGroupTasks:${groupId}`);
+      await client.del(`groupLeaderboard:${groupId}`);
+      await client.del(`groupMembers:${groupId}`);
+    }
+
       res.status(200).json({ message: "Profile picture updated successfully!" });
     } catch (dbErr) {
       await pgClient.query("ROLLBACK");
@@ -602,6 +615,7 @@ app.post("/acceptInvite", authenticateToken, async (req, res) => {
 
     await client.del(`invitations:${userId}`);
     await client.del(`groupMembers:${group_id}`);
+    await client.del(`groupLeaderboard:${group_id}`);
 
     return res.status(200).json({ message: "Invitation accepted. You have joined the group." });
   } catch (err) {
@@ -756,6 +770,7 @@ app.post("/leaveGroup", authenticateToken, async (req, res) => {
 
     await client.query("COMMIT");
     await client.del(`myGroupTasks:${groupId}`);
+    await client.del(`groupLeaderboard:${groupId}`);
 
     if (isOwner) {
       return res
@@ -984,6 +999,7 @@ app.post("/completeTasks", authenticateToken, async (req, res) => {
     );
 
     await client.del(`myGroupTasks:${groupId}`);
+    await client.del(`groupLeaderboard:${groupId}`);
 
     await pgClient.query("COMMIT");
 
@@ -998,5 +1014,77 @@ app.post("/completeTasks", authenticateToken, async (req, res) => {
     return res.status(500).json({ error: "Server error." });
   } finally {
     pgClient.release();
+  }
+});
+
+app.get("/groupLeaderboard", authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.userId;
+
+    // Get the group this user belongs to
+    const { rows: profileRows } = await pool.query(
+      `SELECT group_id
+         FROM profiles
+         WHERE user_id = $1`,
+      [userId]
+    );
+
+    if (profileRows.length === 0) {
+      // If not in group
+      return res.status(200).json({ inGroup: false });
+    }
+
+    const groupId = profileRows[0].group_id;
+    const cacheKey = `groupLeaderboard:${groupId}`;
+
+    const cached = await client.get(cacheKey);
+    if (cached) {
+      const leaderboard = JSON.parse(cached);
+      return res.status(200).json({ inGroup: true, groupId, leaderboard });
+    }
+
+    // Fetch all profiles in that group, joined with user info, sorted by points in descending
+    const { rows: rawRows } = await pool.query(
+      `
+      SELECT
+        p.user_id,
+        u.user_name,
+        u.email,
+        u.pfp,
+        u.pfp_mime,
+        p.points
+      FROM profiles p
+      JOIN users    u ON p.user_id = u.user_id
+      WHERE p.group_id = $1
+      ORDER BY p.points DESC, u.user_name ASC
+      `,
+      [groupId]
+    );
+
+    const leaderboard = rawRows.map(r => {
+      let pfpBase64 = null;
+      if (r.pfp) {
+        pfpBase64 = r.pfp.toString("base64");
+      }
+      return {
+        user_id:   r.user_id,
+        user_name: r.user_name,
+        email:     r.email,
+        points:    r.points,
+        pfp:       pfpBase64,
+        pfp_mime:  r.pfp_mime
+      };
+    });
+
+    await client.set(cacheKey, JSON.stringify(leaderboard), { EX: 300 });
+
+    return res.status(200).json({
+      inGroup: true,
+      groupId,
+      leaderboard
+    });
+  } catch (err) {
+    console.error("Error in /groupLeaderboard:", err);
+    return res.status(500).json({ error: "Server error." });
   }
 });

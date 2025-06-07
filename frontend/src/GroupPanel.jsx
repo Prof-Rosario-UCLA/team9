@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import defaultAvatar from "./assets/defaultpfp.png";
 
 export default function GroupPanel() {
   const [activeTab, setActiveTab] = useState("view");
@@ -47,6 +48,8 @@ export default function GroupPanel() {
           let avatar = "";
           if (m.pfp && m.pfp_mime) {
             avatar = `data:${m.pfp_mime};base64,${m.pfp}`;
+          } else {
+            avatar = defaultAvatar;
           }
           return {
             name: m.user_name,
