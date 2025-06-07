@@ -67,7 +67,12 @@ export default function MainPage() {
   
       let content = '';
       let popupStyle = {};
-      if (activePanel === 'Profile') content = <ProfilePanel />;
+      if (activePanel === 'Profile') content = <ProfilePanel
+      username={username}
+      setUsername={setUsername}
+      profilePic={profilePic}
+      setProfilePic={setProfilePic}
+    />;    
       if (activePanel === 'Group') content = <GroupPanel />;
       if (activePanel === 'Statistics') content = <StatisticsPanel />;
       if (activePanel === 'Inbox') content = <InboxPanel />;

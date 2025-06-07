@@ -1,10 +1,10 @@
 import { useState, useRef, useEffect } from "react";
 import defaultAvatar from "./assets/defaultpfp.png";
 
-export default function ProfilePanel() {
-  const [profilePic, setProfilePic] = useState(defaultAvatar);
+export default function ProfilePanel({ username, setUsername, profilePic, setProfilePic }) {
+  const [localUsername, setLocalUsername] = useState(username);
+  const [localProfilePic, setLocalProfilePic] = useState(profilePic);
   const [selectedFile, setSelectedFile] = useState(null);
-  const [username, setUsername] = useState('Your Username');
   const [bio, setBio] = useState('This is a short bio.');
   const [contactInfo, setContactInfo] = useState('you@example.com | +1 000 000 0000');
   const fileInputRef = useRef(null);
@@ -25,13 +25,13 @@ export default function ProfilePanel() {
         return res.json();
       })
       .then((data) => {
-        setUsername(data.user_name || "");
+        setLocalUsername(data.user_name || "");
         setBio(data.bio || "");
         setContactInfo(data.contact_info || "");
         if (data.pfp) {
-          setProfilePic(`data:${data.pfp_mime};base64,${data.pfp}`);
+          setLocalProfilePic(`data:${data.pfp_mime};base64,${data.pfp}`);
         } else {
-          setProfilePic(defaultAvatar);
+          setLocalProfilePic(defaultAvatar);
         }
       })
       .catch((err) => {
@@ -44,7 +44,7 @@ export default function ProfilePanel() {
     if (file) {
       setSelectedFile(file);
       const url = URL.createObjectURL(file);
-      setProfilePic(url);
+      setLocalProfilePic(url);
     }
   };
 
@@ -52,7 +52,7 @@ export default function ProfilePanel() {
     const token = localStorage.getItem("authToken");
     const formData = new FormData();
 
-    formData.append("user_name", username);
+    formData.append("user_name", localUsername);
     formData.append("bio", bio);
     formData.append("contact_info", contactInfo);
     if (selectedFile) {
@@ -75,6 +75,16 @@ export default function ProfilePanel() {
         return;
       }
 
+      if (selectedFile) {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setProfilePic(reader.result); // update parent image
+          setUsername(localUsername);   // update parent name
+        };
+        reader.readAsDataURL(selectedFile);
+      } else {
+        setUsername(localUsername);     // update parent name
+      }
       alert("Profile updated successfully.");
     } catch (err) {
       console.error("Network error:", err);
@@ -91,7 +101,7 @@ export default function ProfilePanel() {
       <section className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4 mb-3">
         <figure className="avatar relative">
           <div className="w-16 sm:w-20 rounded-full ring ring-info ring-offset-base-100 ring-offset-2">
-            <img src={profilePic} alt="Profile picture" />
+          <img src={localProfilePic} alt="Profile picture" />
           </div>
           <button
             className="absolute bottom-0 right-0 btn btn-[8px] sm:btn-xs btn-info min-h-0 h-5 px-2"
@@ -133,8 +143,8 @@ export default function ProfilePanel() {
             id="username"
             type="text"
             className="input input-xs input-bordered w-full"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
+            value={localUsername}
+            onChange={(e) => setLocalUsername(e.target.value)}
           />
         </section>
 
