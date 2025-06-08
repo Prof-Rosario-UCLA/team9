@@ -6,6 +6,7 @@ export default defineConfig({
   base: '/', 
   plugins: [
     react(),
+    
     VitePWA({
       registerType: 'autoUpdate',
       devOptions: {
@@ -39,6 +40,10 @@ export default defineConfig({
             purpose: 'any maskable',
           },
         ],
+      },
+      build: {
+        outDir: '../backend/public',
+        emptyOutDir: true
       },
       workbox: {
         skipWaiting: true,

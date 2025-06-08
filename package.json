@@ -1,5 +1,12 @@
 {
-  "dependencies": {
-    "react-router-dom": "^7.6.0"
+    "name": "my-fullstack-app",
+    "version": "1.0.0",
+    "private": true,
+    "scripts": {
+      "dev": "concurrently \"redis-server\" \"cd backend && nodemon index.js\" \"cd frontend && npm run dev\""
+    },
+    "devDependencies": {
+      "concurrently": "^8.2.2"
+    }
   }
-}
+  

@@ -9,6 +9,7 @@
     "lint": "eslint .",
     "preview": "vite preview"
   },
+  
   "dependencies": {
     "@hello-pangea/dnd": "^18.0.1",
     "daisyui": "^5.0.35",
