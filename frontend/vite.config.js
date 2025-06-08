@@ -3,16 +3,15 @@ import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 
 export default defineConfig({
-  base: '/', 
+  base: '/',
   plugins: [
     react(),
-    
     VitePWA({
       registerType: 'autoUpdate',
       devOptions: {
         enabled: true,
         type: 'module',
-        navigateFallback: '/index.html', 
+        navigateFallback: '/index.html',
       },
       manifest: {
         name: 'GitBlame',
@@ -21,7 +20,7 @@ export default defineConfig({
         theme_color: '#ffffff',
         background_color: '#ffffff',
         display: 'standalone',
-        start_url: '/', 
+        start_url: '/',
         icons: [
           {
             src: 'pwa-192x192-new.png',
@@ -40,10 +39,6 @@ export default defineConfig({
             purpose: 'any maskable',
           },
         ],
-      },
-      build: {
-        outDir: '../backend/public',
-        emptyOutDir: true
       },
       workbox: {
         skipWaiting: true,
@@ -75,4 +70,8 @@ export default defineConfig({
       },
     }),
   ],
+  build: {
+    outDir: '../backend/public',
+    emptyOutDir: true
+  },
 });
