@@ -14,6 +14,9 @@ const client = redis.createClient();
 client.connect().catch(console.error);
 const port = process.env.PORT
 const cookieParser = require('cookie-parser');
+const helmet  = require('helmet');
+
+app.use(helmet());
 
 /* Middleware setup */
 app.use(cors({
