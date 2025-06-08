@@ -9,8 +9,13 @@ const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
 const redis = require("redis");
 require('dotenv').config()
-const app = express()
-const client = redis.createClient();
+const app = express();
+const client = redis.createClient({
+socket: {
+    host: process.env.REDIS_HOST,
+    port: process.env.REDIS_PORT
+}
+});
 client.connect().catch(console.error);
 const port = process.env.PORT
 const cookieParser = require('cookie-parser');
@@ -18,6 +23,15 @@ const helmet  = require('helmet');
 
 app.use(helmet());
 
+app.use(
+  helmet.contentSecurityPolicy({
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc:  ["'self'", "'unsafe-inline'"],  // allow inline
+      // …other directives…
+    }
+  })
+);
 
 /* Middleware setup */
 app.use(cors({

@@ -5,7 +5,7 @@ export default function ProtectedRoute({ children }) {
   const [authState, setAuthState] = useState('pending');
 
   useEffect(() => {
-    fetch('http://localhost:8080/getProfile', {
+    fetch('/getProfile', {
       method: 'GET',
       credentials: 'include',   // ← send your httpOnly cookie
     })

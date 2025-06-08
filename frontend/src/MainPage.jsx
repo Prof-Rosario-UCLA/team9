@@ -40,7 +40,7 @@ export default function MainPage() {
 
     // Fetch the existing profile
     useEffect(() => {
-      fetch("http://localhost:8080/getProfile", {
+      fetch("/getProfile", {
         method: "GET",
         credentials: "include",
       })
@@ -72,7 +72,7 @@ export default function MainPage() {
 
     const finishTutorial = async () => {
     try {
-      await fetch("http://localhost:8080/completeTutorial", {
+      await fetch("/completeTutorial", {
         method: "POST",
         credentials: "include",
       });

@@ -10,10 +10,7 @@
     <meta name="theme-color" content="#ffffff" />
 
     <!-- Theme init before DOM renders -->
-    <script>
-      const savedTheme = localStorage.getItem('theme') || 'dark';
-      document.documentElement.setAttribute('data-theme', savedTheme);
-    </script>
+    <script type="module" src="/theme-init.jsx" defer></script>
 
     <!-- Service worker injected by Vite PWA plugin -->
   </head>

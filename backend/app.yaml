@@ -9,11 +9,13 @@ automatic_scaling:
 env_variables:
   NODE_ENV: "production"
   PORT: "8080"
-  JWT_SECRET: "your_jwt_secret_here"
+  JWT_SECRET: "10093cfcc73657f9a073807be56b70111d66cfbbe0d0323ec9bd22931a1bd41f"
   DATABASE_URL: "34.105.70.60"
   DATABASE_USERNAME: "admin"
   DATABASE_PASSWORD: "password123"
   DATABASE_DB: "gitdb"
   DATABASE_PORT: "5432"
+  REDIS_HOST: "34.105.70.60"
+  REDIS_PORT: "6379"
 
 entrypoint: node index.js

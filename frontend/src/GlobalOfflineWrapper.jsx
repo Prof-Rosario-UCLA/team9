@@ -5,7 +5,7 @@ export default function GlobalOfflineWrapper({ children }) {
 
   useEffect(() => {
     const checkConnection = () => {
-      fetch("http://localhost:8080/ping")
+      fetch("/ping")
         .then((res) => {
           if (!res.ok) throw new Error("Backend not OK");
           setIsOffline(false);

@@ -10,7 +10,7 @@ export default function ProfilePanel({ username, setUsername, profilePic, setPro
   const fileInputRef = useRef(null);
 
   useEffect(() => {
-    fetch("http://localhost:8080/getProfile", {
+    fetch("/getProfile", {
       method: "GET",
       credentials: "include",
     })
@@ -60,7 +60,7 @@ export default function ProfilePanel({ username, setUsername, profilePic, setPro
     }
 
     try {
-      const res = await fetch("http://localhost:8080/uploadBio", {
+      const res = await fetch("/uploadBio", {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
