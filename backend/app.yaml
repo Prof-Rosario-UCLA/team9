@@ -1,0 +1,19 @@
+runtime: nodejs22
+env: standard
+instance_class: F1
+
+automatic_scaling:
+  min_instances: 1
+  max_instances: 1
+
+env_variables:
+  NODE_ENV: "production"
+  PORT: "8080"
+  JWT_SECRET: "your_jwt_secret_here"
+  DATABASE_URL: "34.105.70.60"
+  DATABASE_USERNAME: "admin"
+  DATABASE_PASSWORD: "password123"
+  DATABASE_DB: "gitdb"
+  DATABASE_PORT: "5432"
+
+entrypoint: node index.js
