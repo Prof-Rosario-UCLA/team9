@@ -1,6 +1,20 @@
 runtime: nodejs22
 env: standard
 instance_class: F1
+entrypoint: npm start
+
+vpc_access_connector:
+  name: projects/cs144-25s-evelasco0628/locations/us-west1/connectors/appengine-connector
+
+env_variables:
+  REDIS_HOST: "10.128.0.3"
+  REDIS_PORT: 6379
+  DATABASE_URL: "34.105.70.60"
+  DATABASE_USERNAME: "admin"
+  DATABASE_PASSWORD: "password123"
+  DATABASE_DB: "gitdb"
+  DATABASE_PORT: 5432
+  PORT: 8080
 
 automatic_scaling:
   min_instances: 1
