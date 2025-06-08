@@ -10,9 +10,14 @@ const jwt = require('jsonwebtoken')
 const redis = require("redis");
 require('dotenv').config()
 const app = express()
-const client = redis.createClient();
+const client = redis.createClient({
+socket: {
+    host: process.env.REDIS_HOST,
+    port: process.env.REDIS_PORT
+}
+});
 client.connect().catch(console.error);
-const port = process.env.PORT
+const port = process.env.PORT || 8080;
 const cookieParser = require('cookie-parser');
 const helmet  = require('helmet');
 
@@ -28,17 +33,24 @@ app.use(fileUpload({
     limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit
 }));
 
-app.use(express.json())
-
+app.use(express.json());
 app.use(cookieParser());
-
-app.listen(port, () => {
-  console.log("server has started on port", port)
-})
 
 app.get("/ping", (req, res) => {
   res.status(200).send("pong");
 });
+
+// Serve frontend static files
+app.use(express.static(path.join(__dirname, '../frontend/dist')));
+
+// For SPA fallback (React/Vue/etc.)
+app.get('/*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../frontend/dist/index.html'));
+});
+
+app.listen(port, () => {
+  console.log("server has started on port", port)
+})
 
 /* Authenticate the session token created during registration or login */
 function authenticateToken(req, res, next) {

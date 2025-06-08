@@ -6,9 +6,9 @@ export default defineConfig({
   base: '/', 
   plugins: [
     react(),
-    
     VitePWA({
       registerType: 'autoUpdate',
+      injectRegister: 'auto',
       devOptions: {
         enabled: true,
         type: 'module',
