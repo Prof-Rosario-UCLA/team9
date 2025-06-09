@@ -18,29 +18,38 @@ export default defineConfig({
       manifest: {
         name: 'GitBlame',
         short_name: 'GitBlame',
-        description: 'Chore Tracker PWA App',
+        description: 'Chore Tracker PWA App developed by David and Enrique',
         theme_color: '#ffffff',
         background_color: '#ffffff',
         display: 'standalone',
         start_url: '/',
+        orientation: 'portrait-primary',
         icons: [
           {
-            src: 'pwa-192x192-new.png',
+            src: '/pwa-192x192-new.png',
             sizes: '192x192',
-            type: 'image/png',
+            type: 'image/png'
           },
           {
-            src: 'pwa-512x512-new.png',
+            src: '/pwa-512x512-new.png',
             sizes: '512x512',
-            type: 'image/png',
+            type: 'image/png'
           },
           {
-            src: 'pwa-512x512-new.png',
+            src: '/pwa-512x512-new.png',
             sizes: '512x512',
             type: 'image/png',
-            purpose: 'any maskable',
-          },
+            purpose: 'any maskable'
+          }
         ],
+        screenshots: [
+          {
+            src: '/bear.png',
+            sizes: '540x720',
+            type: 'image/png',
+            form_factor: 'wide'
+          }
+        ]
       },
       workbox: {
         skipWaiting: true,
@@ -49,13 +58,13 @@ export default defineConfig({
           {
             urlPattern: ({ request }) => request.destination === 'document',
             handler: 'NetworkFirst',
-            options: { cacheName: 'html-cache' },
+            options: { cacheName: 'html-cache' }
           },
           {
             urlPattern: ({ request }) =>
               ['style', 'script', 'worker'].includes(request.destination),
             handler: 'StaleWhileRevalidate',
-            options: { cacheName: 'asset-cache' },
+            options: { cacheName: 'asset-cache' }
           },
           {
             urlPattern: ({ request }) => request.destination === 'image',
@@ -64,16 +73,16 @@ export default defineConfig({
               cacheName: 'image-cache',
               expiration: {
                 maxEntries: 50,
-                maxAgeSeconds: 30 * 24 * 60 * 60,
-              },
-            },
-          },
-        ],
-      },
-    }),
+                maxAgeSeconds: 30 * 24 * 60 * 60
+              }
+            }
+          }
+        ]
+      }
+    })
   ],
   build: {
     outDir: '../backend/dist',
-    emptyOutDir: true,
-  },
+    emptyOutDir: true
+  }
 });

@@ -6,13 +6,13 @@
     <title>GitBlame</title>
 
     <!-- Manifest + theme color for PWA -->
-    <link rel="manifest" href="/manifest.json" />
+    <link rel="manifest" href="/manifest.webmanifest" />
     <meta name="theme-color" content="#ffffff" />
 
     <!-- Theme init before DOM renders -->
     <script type="module" src="/theme-init.jsx" defer></script>
 
-    <!-- Service worker injected by Vite PWA plugin -->
+    <!-- Vite injects scripts and service worker here at build -->
   </head>
   <body class="h-full">
     <div id="root"></div>
