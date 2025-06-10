@@ -25,7 +25,7 @@ export default function ChorePanel() {
 
     const fetchTasks = async () => {
       try {
-        const resp = await fetch('http://localhost:8080/getMyGroupTasks', {
+        const resp = await fetch('/getMyGroupTasks', {
           method: 'GET',
           credentials: 'include'
         });
@@ -201,7 +201,7 @@ export default function ChorePanel() {
     const taskIds = pageItems.map(c => parseInt(c.id, 10));
 
     try {
-      const resp = await fetch('http://localhost:8080/claimTasks', {
+      const resp = await fetch('/claimTasks', {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
@@ -244,7 +244,7 @@ export default function ChorePanel() {
     };
 
       try {
-        const resp = await fetch("http://localhost:8080/createTask", {
+        const resp = await fetch("/createTask", {
           method: "POST",
           credentials: "include",
           headers: { "Content-Type": "application/json" },

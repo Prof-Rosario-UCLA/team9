@@ -14,7 +14,7 @@ export default function CalendarPanel2() {
 
     const fetchTasks = async () => {
       try {
-        const resp = await fetch('http://localhost:8080/getMyGroupTasks', {
+        const resp = await fetch('/getMyGroupTasks', {
           method: 'GET',
           credentials: 'include'
       });
@@ -78,7 +78,7 @@ export default function CalendarPanel2() {
   const handleClaimChore = async () => {
     if (!selectedChore) return;
     try {
-      const resp = await fetch('http://localhost:8080/claimTasks', {
+      const resp = await fetch('/claimTasks', {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
@@ -109,7 +109,7 @@ export default function CalendarPanel2() {
   const handleCompleteChore = async () => {
     if (!selectedChore) return;
     try {
-      const resp = await fetch('http://localhost:8080/completeTasks', {
+      const resp = await fetch('/completeTasks', {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },

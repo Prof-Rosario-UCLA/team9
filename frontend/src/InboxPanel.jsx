@@ -7,7 +7,7 @@ export default function InboxPanel() {
 
     const fetchInvitations = async () => {
       try {
-        const resp = await fetch("http://localhost:8080/getInvitations", {
+        const resp = await fetch("/getInvitations", {
           method: "GET",
           credentials: "include",
       });
@@ -30,7 +30,7 @@ export default function InboxPanel() {
 
     const handleAccept = async (groupId) => {
     try {
-      const resp = await fetch("http://localhost:8080/acceptInvite", {
+      const resp = await fetch("/acceptInvite", {
         method: "POST",
         credentials: "include", 
         headers: {

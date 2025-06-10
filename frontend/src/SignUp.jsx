@@ -2,7 +2,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useRef } from 'react';
 
 async function registerUser(credentials) {
-  const res = await fetch('http://localhost:8080/signup', {
+  const res = await fetch('/signup', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include',

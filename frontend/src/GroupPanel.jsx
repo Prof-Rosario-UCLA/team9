@@ -17,7 +17,7 @@ export default function GroupPanel() {
 
     const fetchMembers = async () => {
       try {
-        const resp = await fetch("http://localhost:8080/getGroupMembers", {
+        const resp = await fetch("/getGroupMembers", {
           method: "GET",
           credentials: "include",
       });
@@ -69,7 +69,7 @@ export default function GroupPanel() {
     // Handle leaving group
     const handleLeaveGroup = async () => {
     try {
-      const resp = await fetch("http://localhost:8080/leaveGroup", {
+      const resp = await fetch("/leaveGroup", {
         method: "POST",
         credentials: "include",
       });
@@ -100,7 +100,7 @@ export default function GroupPanel() {
     }
 
      try {
-      const resp = await fetch("http://localhost:8080/createGroup", {
+      const resp = await fetch("/createGroup", {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -136,7 +136,7 @@ export default function GroupPanel() {
     }
 
     try {
-      const resp = await fetch("http://localhost:8080/inviteUser", {
+      const resp = await fetch("/inviteUser", {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },

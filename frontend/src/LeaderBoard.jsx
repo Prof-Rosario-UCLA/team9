@@ -10,7 +10,7 @@ export default function StatisticsPanel() {
     useEffect(() => {
     const fetchLeaderboard = async () => {
     try {
-      const resp = await fetch('http://localhost:8080/groupLeaderboard', {
+      const resp = await fetch('/groupLeaderboard', {
         credentials: 'include'
       });
 
