@@ -110,7 +110,7 @@ try {
 
  res.cookie('token', token, {
      httpOnly: true,
-     secure: process.env.NODE_ENV === 'production',
+     secure: true,
      sameSite: 'Strict',
      maxAge: 3600 * 1000,
    })
