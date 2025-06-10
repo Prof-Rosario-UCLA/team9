@@ -111,7 +111,7 @@ try {
  res.cookie('token', token, {
      httpOnly: true,
      secure: true,
-     sameSite: 'Strict',
+     sameSite: 'lax',
      maxAge: 3600 * 1000,
    })
    .status(201)
@@ -156,8 +156,8 @@ try {
 
   res.cookie('token', token, {
     httpOnly: true,
-    secure:   process.env.NODE_ENV === 'production',
-    sameSite: 'Strict',
+    secure: true,
+    sameSite: 'lax',
     maxAge:   3600 * 1000,
   })
   .status(201)
