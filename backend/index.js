@@ -169,6 +169,18 @@ try {
 console.log("Successful login")
 })
 
+/* Clears Cookie to Log Out */
+app.post('/logout', (req, res) => {
+  res.clearCookie('token', {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'lax',
+      path:     '/',
+    })
+    .status(200)
+    .json({ success: true });
+});
+
 /* Upload Profile Picture */
 app.post("/uploadBio", authenticateToken, async (req, res) => {
 try {

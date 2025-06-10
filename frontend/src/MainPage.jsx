@@ -82,6 +82,18 @@ export default function MainPage() {
     setShowTutorial(false);
     };
 
+    const handleLogout = async () => {
+    try {
+      await fetch('/logout', {
+        method: 'POST',
+        credentials: 'include',
+      });
+    } catch (err) {
+      console.error('Logout failed', err);
+    }
+    navigate('/signin');
+  };
+
     const renderPopup = () => {
       if (!activePanel) return null;
   
@@ -130,10 +142,7 @@ export default function MainPage() {
           <div className="flex-none">
             <button
               className="btn btn-ghost btn-sm text-base-content"
-              onClick={() => {
-                localStorage.removeItem("authToken");
-                navigate("/signin");
-              }}
+              onClick={handleLogout}
               aria-label="Log Out"
             >
               Log Out
