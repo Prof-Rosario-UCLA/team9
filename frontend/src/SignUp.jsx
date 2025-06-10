@@ -10,7 +10,7 @@ async function registerUser(credentials) {
   });
   const data = await res.json();
   if (!res.ok) throw new Error(data.error || 'Signup failed');
-  return data.sucess;
+  return data.success;
 }
 
 export default function SignUp() {
@@ -20,7 +20,7 @@ export default function SignUp() {
   const passwordRef = useRef();
   const confirmPasswordRef = useRef();
 
-  const handleSubmit = async e => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const userName = userNameRef.current.value.trim();
     const email = emailRef.current.value.trim();
@@ -40,14 +40,14 @@ export default function SignUp() {
   };
 
   return (
-    <div className="min-h-screen bg-base-200 flex items-center justify-center px-4">
-      <div className="w-full max-w-md bg-base-100 rounded-xl shadow-lg p-8">
-        <h2 className="text-3xl font-bold text-center text-info mb-6">
+    <div className="w-screen h-screen bg-base-200 flex items-center justify-center">
+      <div className="w-[90vw] max-w-md h-[95vh] transform scale-90 sm:scale-100 bg-base-100 rounded-xl shadow-lg p-4 sm:p-6 flex flex-col justify-center">
+        <h2 className="text-xl sm:text-3xl font-bold text-center text-info mb-4 sm:mb-6">
           Create an Account
         </h2>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {/* UserName */}
+        <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4 text-sm sm:text-base">
+          {/* Username */}
           <div>
             <label className="label">
               <span className="label-text">User Name</span>
@@ -107,8 +107,8 @@ export default function SignUp() {
             />
           </div>
 
-          {/* Submit */}
-          <div className="pt-4">
+          {/* Submit Button */}
+          <div className="pt-2 sm:pt-4">
             <button type="submit" className="btn btn-info w-full text-white">
               Sign Up
             </button>
@@ -116,9 +116,9 @@ export default function SignUp() {
         </form>
 
         {/* Link to Sign In */}
-        <p className="text-sm text-center mt-4 text-gray-500">
-          Already have an account?{" "}
-          <Link to="/signin" className="text-info hover:underline text-sm">
+        <p className="text-xs sm:text-sm text-center mt-4 text-gray-500">
+          Already have an account?{' '}
+          <Link to="/signin" className="text-info hover:underline">
             Sign In
           </Link>
         </p>

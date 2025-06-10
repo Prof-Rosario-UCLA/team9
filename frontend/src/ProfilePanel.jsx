@@ -43,8 +43,11 @@ export default function ProfilePanel({ username, setUsername, profilePic, setPro
     const file = e.target.files[0];
     if (file) {
       setSelectedFile(file);
-      const url = URL.createObjectURL(file);
-      setLocalProfilePic(url);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setLocalProfilePic(reader.result); 
+      };
+      reader.readAsDataURL(file);
     }
   };
 
