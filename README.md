@@ -10,7 +10,7 @@
 
 1. Go into the backend directory.
 2. Run npm install..
-
+3. If you want to test locally, run node index.js or nodemon
 # Google App Engine Deployment
 
 1. Go into the backend directory.
