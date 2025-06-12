@@ -7,7 +7,6 @@
     "clean": "rm -rf dist ../backend/client-dist",
     "dev": "vite",
     "build": "npm run clean && vite build",
-    "postbuild": "cp -r dist ../backend/client-dist",
     "preview": "vite preview",
     "lint": "eslint ."
   },
